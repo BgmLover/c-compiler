@@ -125,7 +125,7 @@ L?\"(\\.|[^\\"\n])*\"    { count(); return(STRING_LITERAL); }
 
 %%
 
-%{
+
 int yywrap(void)
 {
     return 1;
