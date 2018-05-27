@@ -2,23 +2,25 @@
 
 #define _TREE_H_
 
+#include <string>
+
 extern char *yytext;
 extern int yylineno;
 
-class treeNode {
+class TreeNode {
 public:
-    char content;
-    char name;
+    string content;
+    string name;
     int row;
     int col;
-    treeNode &first_child;
-    treeNode &next_sibling;
-    treeNode();
-    treeNode(char *name, int row, int col);
-    treeNode(char *name, int row, int col, ...);
-    toJson();
+    TreeNode &first_child;
+    TreeNode &next_sibling;
+    TreeNode();
+    TreeNode(char *name, int row, int col);
+    TreeNode(char *name, int row, int col, ...);
+    to_json();
 }
 
-extern treeNode root;
+extern TreeNode root;
 
 #endif
