@@ -5,23 +5,20 @@
 extern char *yytext;
 extern int yylineno;
 
-struct treeNodeStruct {
+class treeNode {
+public:
     char content;
     char name;
     int row;
     int col;
-    struct treeNode *first_child;
-    struct treeNode *next_sibling;
-};
+    treeNode &first_child;
+    treeNode &next_sibling;
+    treeNode();
+    treeNode(char *name, int row, int col);
+    treeNode(char *name, int row, int col, ...);
+    toJson();
+}
 
-typedef struct treeNodeStruct treeNode;
-
-extern treeNode *root;
-
-treeNode *create_tree(char *name, int row, int col);
-
-// void eval(struct treeNode *head, int leavel);
-// char *my_substring(char *s, int begin, int end);
-// void freeGramTree(treeNode *node);
+extern treeNode root;
 
 #endif
