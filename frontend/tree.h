@@ -18,7 +18,7 @@ public:
     TreeNode();
     TreeNode(char *name, int row, int col);
     TreeNode(char *name, int row, int col, ...);
-    to_json();
+    void to_json();
 }
 
 extern TreeNode root;
