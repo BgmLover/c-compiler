@@ -19,43 +19,42 @@ void count_col(void);
 "/*"            { comment(); }
 "//"[^\n]*              { /* consume //-comment */ }
 
-
-"auto"            { count_col(); return(AUTO); }
-"_Bool"            { count_col(); return(BOOL); }
+ /*"auto"           { count_col(); return(AUTO); }*/
+ /*"_Bool"            { count_col(); return(BOOL); }*/
 "break"            { count_col(); return(BREAK); }
 "case"            { count_col(); return(CASE); }
 "char"            { count_col(); return(CHAR); }
-"_Complex"        { count_col(); return(COMPLEX); }
+ /*"_Complex"        { count_col(); return(COMPLEX); }*/
 "const"            { count_col(); return(CONST); }
 "continue"        { count_col(); return(CONTINUE); }
 "default"        { count_col(); return(DEFAULT); }
 "do"            { count_col(); return(DO); }
 "double"        { count_col(); return(DOUBLE); }
 "else"            { count_col(); return(ELSE); }
-"enum"            { count_col(); return(ENUM); }
-"extern"        { count_col(); return(EXTERN); }
-"float"            { count_col(); return(FLOAT); }
+ /*"enum"            { count_col(); return(ENUM); }*/
+ /*"extern"        { count_col(); return(EXTERN); }*/
+ /*"float"            { count_col(); return(FLOAT); }*/
 "for"            { count_col(); return(FOR); }
 "goto"            { count_col(); return(GOTO); }
 "if"            { count_col(); return(IF); }
-"_Imaginary"        { count_col(); return(IMAGINARY); }
-"inline"        { count_col(); return(INLINE); }
+ /*"_Imaginary"        { count_col(); return(IMAGINARY); }*/
+ /*"inline"        { count_col(); return(INLINE); }*/
 "int"            { count_col(); return(INT); }
-"long"            { count_col(); return(LONG); }
-"register"        { count_col(); return(REGISTER); }
-"restrict"        { count_col(); return(RESTRICT); }
+ /*"long"            { count_col(); return(LONG); }*/
+ /*"register"        { count_col(); return(REGISTER); }*/
+ /*"restrict"        { count_col(); return(RESTRICT); }*/
 "return"        { count_col(); return(RETURN); }
-"short"            { count_col(); return(SHORT); }
-"signed"        { count_col(); return(SIGNED); }
+ /*"short"            { count_col(); return(SHORT); }*/
+ /*"signed"        { count_col(); return(SIGNED); }*/
 "sizeof"        { count_col(); return(SIZEOF); }
-"static"        { count_col(); return(STATIC); }
-"struct"        { count_col(); return(STRUCT); }
+ /*"static"        { count_col(); return(STATIC); }*/
+ /*"struct"        { count_col(); return(STRUCT); }*/
 "switch"        { count_col(); return(SWITCH); }
 "typedef"        { count_col(); return(TYPEDEF); }
-"union"            { count_col(); return(UNION); }
-"unsigned"        { count_col(); return(UNSIGNED); }
+ /*"union"            { count_col(); return(UNION); }*/
+ /*"unsigned"        { count_col(); return(UNSIGNED); }*/
 "void"            { count_col(); return(VOID); }
-"volatile"        { count_col(); return(VOLATILE); }
+ /*"volatile"        { count_col(); return(VOLATILE); }*/
 "while"            { count_col(); return(WHILE); }
 
 {L}({L}|{D})*        { count_col(); return(check_type()); }
@@ -122,8 +121,8 @@ L?\"(\\.|[^\\"\n])*\"    { count_col(); return(STRING_LITERAL); }
 "|"            { count_col(); return('|'); }
 "?"            { count_col(); return('?'); }
 
-[ \t\v\n\f]    { count_col(); }
-\n             {count_row()}
+[ \t\v\n\f]    { count_col(); return(' '); }
+\n             { count_row(); return('\n'); }
 .            { /* Add code to complain about unmatched characters */ }
 
 %%
