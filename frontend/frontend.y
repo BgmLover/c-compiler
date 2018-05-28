@@ -326,4 +326,43 @@ unary_operator
     | '!'{};
 
 postfix_expression
-    :
+    : primary_expression{//基本表达式
+
+    }
+    | postfix_expression '[' expression ']'{}
+    | postfix_expression '(' ')'{}
+    | postfix_expression '(' argument_expression_list ')'
+    | postfix_expression INC_OP{}
+    | postfix_expression DEC_OP{};
+
+argument_expression_list
+    : assignment_expression{}
+    | argument_expression_list ',' assignment_expression{};
+
+primary_expression
+    : IDENTIFIER{}
+    | CONSTANT_INT{}
+    | CONSTANT_DOUBLE{}
+    | STRING_LITERAL{}
+    | '(' expression ')'{};
+
+declaration 
+    : declaration_specifiers ';'{}
+    | declaration_specifiers init_declarator_list{};
+
+init_declarator_list
+    : init_declarator{}
+    | init_declarator_list ',' init_declarator{};
+
+init_declarator
+    : declarator{}
+    | declarator '=' initializer{};
+
+initializer
+    : assignment_expression{}
+    | '{' initializer_list '}' {}
+    | '{' initializer_list ',' '}'{};
+
+init_declarator_list
+    : initializer{}
+    | initializer_list ',' initializer{}
