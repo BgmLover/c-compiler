@@ -61,7 +61,10 @@ void count_col(void);
 "while"           { count_col(); yylval.node = new TreeNode("while"); return(WHILE); }
 
 {L}({L}|{D})*     { count_col(); yylval.node = new TreeNode("identifier", yytext); return(IDENTIFIER); }
-
+0[xX]{H}+        { count_col(); yylval.node = new TreeNode("constant_int", yytext)/*TODO to int*/; return(CONSTANT); }
+0[0-7]*        { count_col(); yylval.node = new TreeNode("constant_int"); return(CONSTANT); }
+[1-9]{D}*        { count_col(); yylval.node = new TreeNode("constant_int", yytext); return(CONSTANT); }
+ /*TODO negative constants? */
  /*
 0[xX]{H}+{IS}?        { count_col(); return(CONSTANT); }
 0[0-7]*{IS}?        { count_col(); return(CONSTANT); }
@@ -76,8 +79,8 @@ L?'(\\.|[^\\'\n])+'    { count_col(); return(CONSTANT); }
 0[xX]{H}+"."{H}*{P}{FS}?     { count_col(); return(CONSTANT); }
  */
 
-
-L?\"(\\.|[^\\"\n])*\"    { count_col(); return(STRING_LITERAL); }
+ /*TODO string*/
+ /*L?\"(\\.|[^\\"\n])*\"    { count_col(); return(STRING_LITERAL); }*/
 
 "..."           { count_col(); yylval.node = new TreeNode("..."); return(ELLIPSIS); }
 ">>="           { count_col(); yylval.node = new TreeNode(">>="); return(RIGHT_ASSIGN); }
@@ -126,7 +129,7 @@ L?\"(\\.|[^\\"\n])*\"    { count_col(); return(STRING_LITERAL); }
 "|"             { count_col(); yylval.node = new TreeNode("|"); return('|'); }
 "?"             { count_col(); yylval.node = new TreeNode("?"); return('?'); }
 
-[ \t\v\n\f]     { count_col(); return(' '); }
+[ \t\v\f]     { count_col(); return(' '); }
 \n              { count_row(); return('\n'); }
 .               { /* Add code to complain about unmatched characters */ }
 
