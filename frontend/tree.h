@@ -7,20 +7,22 @@
 extern char *yytext;
 extern int yylineno;
 
+using namespace std;
+
 class TreeNode {
 public:
     string content;
     string name;
     int row;
     int col;
-    TreeNode &first_child;
-    TreeNode &next_sibling;
-    TreeNode();
-    TreeNode(char *name, int row, int col);
-    TreeNode(char *name, int row, int col, ...);
-    void to_json();
+    TreeNode *first_child;
+    TreeNode *next_sibling;
+    TreeNode(string name);
+    TreeNode(string name, string content);
+    TreeNode(string name, int num, ...);
+    void write_json(string path);
 }
 
-extern TreeNode root;
+extern TreeNode *root;
 
 #endif
