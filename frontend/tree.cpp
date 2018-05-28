@@ -3,31 +3,35 @@
 TreeNode root;
 
 TreeNode::TreeNode(string name)
-:name(name),row(0),col(0),content(NULL),first_child(NULL),next_sibling(NULL){}
+{
+    
+    this->name=name;
 
-TreeNode::TreeNode(string name,int num,TreeNode*t1, ...)
+}
+
+TreeNode::TreeNode(string name,int num,...)
 {
     va_list valist;
     //创建节点
-    TreeNode* head = new TreeNode();
-    TreeNode->name=name;
+    
+    this->name=name;
     //TreeNode->row=0;
     //TreeNode->col=0;
     //连接子树
     va_start(valist,num);
     if(num>0){
-        temp=va_arg(valist,TreeNode*)；
-        head->first_child=temp;
-        if(num==1){
-            head->content=temp->content;
+        temp=va_arg(valist,TreeNode*);
+        this->first_child=temp;
+        this->content="";
+        if(num>1){
+            while(--num){
+                temp2=va_arg(valist,TreeNode*);
+                temp->next_sibling=temp2;
+                temp=temp2;
+            }
         }
-        else head->content="";
     }
-    else{
-        while(num--){
 
-        }
-    }
 }
 
 
