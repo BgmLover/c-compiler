@@ -9,7 +9,7 @@ IS                      ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 %{
 
 #include <stdio.h>
-#include "y.tab.h"
+#include "y.tab.hpp"
 #include "tree.h"
 
 void count_col(void);
@@ -17,7 +17,9 @@ void count_col(void);
 
 %%
 
-"/*" { count_col(); comment(); }
+"/*" { count_col(); 
+/*comment(); */
+}
 
 "//"[^\n]* { /* consume //-comment */ }
 
@@ -141,17 +143,17 @@ int yywrap(void){
 }
 
 
-void comment(void){
-  char c, prev = 0;
+// void comment(void){
+//   char c, prev = 0;
 
-  while ((c = input()) != 0)      /* (EOF maps to 0) */
-  {
-    if (c == '/' && prev == '*')
-      return;
-    prev = c;
-  }
-  error("unterminated comment");
-}
+//   while ((c = input()) != 0)      /* (EOF maps to 0) */
+//   {
+//     if (c == '/' && prev == '*')
+//       return;
+//     prev = c;
+//   }
+//   error("unterminated comment");
+// }
 
 
 int column = 0;

@@ -15,7 +15,9 @@ void yyerror(const char*s);
 %}
 
 
-
+%union{
+  TreeNode* node;
+}
 %token <node> IDENTIFIER CONSTANT STRING_LITERAL SIZEOF CONSTANT_INT CONSTANT_DOUBLE
 %token <node> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token <node> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -47,9 +49,7 @@ void yyerror(const char*s);
 
 %start c_program
 
-%union{
-  TreeNode *node;
-}
+
 %%
 
 c_program: 
