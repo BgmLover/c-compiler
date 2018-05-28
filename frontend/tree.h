@@ -13,10 +13,10 @@ public:
     string name;
     int row;
     int col;
-    TreeNode &first_child;
-    TreeNode &next_sibling;
+    TreeNode *first_child;
+    TreeNode *next_sibling;
     TreeNode();
-    TreeNode(char *name, int row, int col);
+    TreeNode(string name);
     //TreeNode(char *name, int row, int col, ...);
     TreeNode(string name,int num,TreeNode*t1, ...);
     void to_json();
