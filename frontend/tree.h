@@ -17,7 +17,7 @@ public:
     TreeNode &next_sibling;
     TreeNode();
     TreeNode(char *name, int row, int col);
-    TreeNode(char *name, int row, int col, ...);
+    //TreeNode(char *name, int row, int col, ...);
     TreeNode(string name,int num,TreeNode*t1, ...);
     void to_json();
 }
