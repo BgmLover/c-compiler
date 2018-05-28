@@ -3,6 +3,9 @@
 #define _TREE_H_
 
 #include <string>
+#include <iostream>
+#include <fstream>
+#include "json/json.h"
 
 extern char *yytext;
 extern int yylineno;
@@ -21,6 +24,7 @@ public:
     TreeNode(string name, string content);
     TreeNode(string name, int num, ...);
     void write_json(string path);
+    void in_order(TreeNode* head,Json::Value jroot);
 }
 
 extern TreeNode *root;
