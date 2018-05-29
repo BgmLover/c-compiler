@@ -8,8 +8,15 @@ root = true
 charset = utf-8
 end_of_line = lf
 insert_final_newline = true
-
-[*.{py,l,y,c}]
 indent_style = space
 indent_size = 2
+
+[*.{py,l,y}]
+indent_style = space
+indent_size = 2
+
+
+[*.{cpp,hpp,h,c}]
+indent_style = space
+indent_size = 4
 

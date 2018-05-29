@@ -85,12 +85,12 @@ void TreeNode::traverse(TreeNode *node, ofstream &outfile){
     outfile << "\"col\":" << to_string(node->col) << ",";
     outfile << "\"children\":[";
     if(node->first_child){
-      traverse(node->first_child, outfile);
+        traverse(node->first_child, outfile);
     }
     outfile << "]";
     if(node->next_sibling){
-      outfile << ",";
-      traverse(node->next_sibling, outfile);
+        outfile << ",";
+        traverse(node->next_sibling, outfile);
     }
 }
 
