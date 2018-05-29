@@ -11,7 +11,8 @@ IS                      ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 #include <stdio.h>
 #include "y.tab.hpp"
 #include "tree.h"
-
+#include<iostream>
+using namespace std;
 void count_col(void);
 void count_row();
 extern YYSTYPE yylval;

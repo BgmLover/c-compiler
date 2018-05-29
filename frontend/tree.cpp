@@ -80,7 +80,7 @@ void TreeNode::write_json(string path){
 void TreeNode::traverse(TreeNode *node, ofstream &outfile){
     outfile << "{";
     outfile << "\"name\":\"" << node->name << "\",";
-    outfile << "\"content\:\"" << node->content << "\",";
+    outfile << "\"content\":\"" << node->content << "\",";
     outfile << "\"row\":" << to_string(node->row) << ",";
     outfile << "\"col\":" << to_string(node->col) << ",";
     outfile << "\"children\":[";

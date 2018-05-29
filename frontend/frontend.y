@@ -529,10 +529,12 @@ int main(int argc,char* argv[]){
     yyin = fopen(argv[1],"r");
     yyparse();
     root->write_json("result.json");
+    //yyclose(yyin);
     return 0;
 }
 void yyerror(char const *s)
 {
-	fflush(stdout);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
+	//fflush(stdout);
+  printf("\n line:%d  %s",yylineno,s);
+	//printf("\n%*s\n%*s\n", column, "^", column, s);
 }
