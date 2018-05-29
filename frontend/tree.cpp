@@ -7,13 +7,9 @@ TreeNode::TreeNode(string name, string content):TreeNode(name){
     this->content = content;
 }
 
-TreeNode::TreeNode(string name,int num,...){
+TreeNode::TreeNode(string name,int num,...):TreeNode(name){
     va_list valist;
     //创建节点
-    
-    this->name=name;
-    //TreeNode->row=0;
-    //TreeNode->col=0;
     //连接子树
     va_start(valist,num);
     if(num>0){
@@ -27,6 +23,8 @@ TreeNode::TreeNode(string name,int num,...){
                 temp=temp2;
             }
         }
+        this->col = first_child->col;
+        this->name = first_child->row;
     }
 }
 
@@ -35,7 +33,6 @@ void TreeNode::write_json(string path){
     outfile.open (path);
     traverse(this, outfile);
     outfile.close();
-
 }
 
 
