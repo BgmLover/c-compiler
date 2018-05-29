@@ -13,6 +13,7 @@ int yylex(void);
 TreeNode *root;
 void yyerror(const char*s);
 
+int flag=0;
 %}
 
 %define parse.error verbose
@@ -87,7 +88,8 @@ declaration_specifiers:
     };
 
 type_specifier:
-      VOID{
+  
+     VOID{
       $$=new TreeNode("type_specifier",1,$1);
       }
     | CHAR{
@@ -98,7 +100,12 @@ type_specifier:
       }
     | DOUBLE{
       $$=new TreeNode("type_specifier",1,$1);
-      };
+      }
+    | error IDENTIFIER {
+      flag=1;
+      //define a error recovery
+    };
+    
 
 declarator:
       IDENTIFIER{
@@ -530,8 +537,9 @@ int main(int argc,char* argv[]){
     yyparse();
     root->write_json("dist/result.json");
     fclose(yyin);
-    return 0;
+    return flag;
 }
+
 void yyerror(char const *s)
 {
 	//fflush(stdout);
