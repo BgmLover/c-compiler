@@ -5,10 +5,9 @@
 #include"tree.h"
 
 extern char* yytext;
-extern int column;
 extern FILE* yyin;
 extern FILE* yyout;
-extern int row,column;
+extern int yyrow,yycol;
 
 int yylex(void);
 TreeNode *root;
@@ -16,12 +15,13 @@ void yyerror(const char*s);
 
 %}
 
+%define parse.error verbose
 
 %union{
   TreeNode* node;
 }
 
-%token <node> IDENTIFIER CONSTANT STRING_LITERAL SIZEOF CONSTANT_INT CONSTANT_DOUBLE
+%token <node> IDENTIFIER STRING_LITERAL SIZEOF CONSTANT_INT CONSTANT_DOUBLE
 %token <node> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token <node> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token <node> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -535,7 +535,7 @@ int main(int argc,char* argv[]){
 void yyerror(char const *s)
 {
 	//fflush(stdout);
-  cout<<"line:"<<row<<" colum:"<<column;
+  cout<<endl<<"line:"<<yyrow<<" colum:"<<yycol<<"   ";
   cout<<s<<endl;
 	//printf("\n%*s\n%*s\n", column, "^", column, s);
 }
