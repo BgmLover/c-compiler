@@ -1,51 +1,13 @@
 #include "tree.h"
 
 
-TreeNode::TreeNode(string name)
-{
-    
-    this->name=name;
-    this->col=column;
-    this->row=row;
-    //分配
-    if(this->name=="CONSTANT_INT"){//整型
-        int value;
-        if(strlen(yytext) > 1 && yytext[0] == '0' && yytext[1] != 'x') {
-            sscanf(yytext,"%o",&value); //8进制整数
-        }
-        else if(strlen(yytext) > 1 && yytext[1] == 'x'){
-            sscanf(yytext,"%x",&value); //16进制整数
-        }
-        else value = atoi(yytext);      //10进制整数
-        this->content = to_string(value);   
-    }
-    else if(this->name == "CONSTANT_DOUBLE") {//浮点数
-        this->content = yytext;
-    }
-    else if(this->name == "TRUE") {//bool
-        this->content = to_string(1);
-    }
-    else if(this->name == "FALSE") {
-        this->content = to_string(0);
-    }
-    else if(this->name == "STRING_LITERAL") {//string
-        this->content = yytext;
-    }
-    else {
-        this->content = yytext;
-    }
+TreeNode::TreeNode(string name):name(name),row(yyrow),col(yycol){}
+
+TreeNode::TreeNode(string name, string content):TreeNode(name){
+    this->content = content;
 }
 
-TreeNode::TreeNode(string name, string content)
-{
-    this->name=name;
-    this->content=content;
-    this->col=column;
-    this->row=row;
-}
-
-TreeNode::TreeNode(string name,int num,...)
-{
+TreeNode::TreeNode(string name,int num,...){
     va_list valist;
     //创建节点
     
@@ -92,5 +54,6 @@ void TreeNode::traverse(TreeNode *node, ofstream &outfile){
         outfile << ",";
         traverse(node->next_sibling, outfile);
     }
+    outfile << "";
 }
 

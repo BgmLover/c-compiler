@@ -11,7 +11,7 @@
 #include <fstream>
 
 extern char *yytext;
-extern int column,row;
+extern int yycol, yyrow;
 
 using namespace std;
 

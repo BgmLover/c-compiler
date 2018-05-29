@@ -159,17 +159,17 @@ int yywrap(void){
 // }
 
 
-int column = 0;
-int row = 0;
+int yycol = 0;
+int yyrow = 0;
 
 void count_col(void){
   int i;
 
   for (i = 0; yytext[i] != '\0'; i++){
     if(yytext[i] == '\t'){
-      column += 8 - (column % 8);
+      yycol += 8 - (yycol % 8);
     }else{
-      column++;
+      yycol++;
     }
   }
 
@@ -177,7 +177,7 @@ void count_col(void){
 }
 
 void count_row(){
-  column = 0;
-  row++;
+  yycol = 0;
+  yyrow++;
 }
 
