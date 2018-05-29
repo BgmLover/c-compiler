@@ -13,6 +13,8 @@ IS                      ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 #include "tree.h"
 
 void count_col(void);
+void count_row();
+extern YYSTYPE yylval;
 %}
 
 %%
@@ -30,9 +32,9 @@ void count_col(void);
 "case"            { count_col(); yylval.node = new TreeNode("case"); return(CASE); }
 "char"            { count_col(); yylval.node = new TreeNode("char"); return(CHAR); }
  /*"_Complex"        { count_col(); return(COMPLEX); }*/
-"const"           { count_col(); yylval.node = new TreeNode("const"); return(CONST); }
+ /*"const"           { count_col(); yylval.node = new TreeNode("const"); return(CONST); }*/
 "continue"        { count_col(); yylval.node = new TreeNode("continue"); return(CONTINUE); }
-"default"         { count_col(); yylval.node = new TreeNode("default"); return(DEFAULT); }
+ /*"default"         { count_col(); yylval.node = new TreeNode("default"); return(DEFAULT); }*/
 "do"              { count_col(); yylval.node = new TreeNode("do"); return(DO); }
 "double"          { count_col(); yylval.node = new TreeNode("double"); return(DOUBLE); }
 "else"            { count_col(); yylval.node = new TreeNode("else"); return(ELSE); }
@@ -55,7 +57,7 @@ void count_col(void);
  /*"static"        { count_col(); return(STATIC); }*/
  /*"struct"        { count_col(); return(STRUCT); }*/
 "switch"          { count_col(); yylval.node = new TreeNode("switch"); return(SWITCH); }
-"typedef"         { count_col(); yylval.node = new TreeNode("typedef"); return(TYPEDEF); }
+ /*"typedef"         { count_col(); yylval.node = new TreeNode("typedef"); return(TYPEDEF); }*/
  /*"union"            { count_col(); return(UNION); }*/
  /*"unsigned"        { count_col(); return(UNSIGNED); }*/
 "void"            { count_col(); yylval.node = new TreeNode("void"); return(VOID); }
@@ -84,7 +86,7 @@ L?'(\\.|[^\\'\n])+'    { count_col(); return(CONSTANT); }
  /*TODO string*/
  /*L?\"(\\.|[^\\"\n])*\"    { count_col(); return(STRING_LITERAL); }*/
 
-"..."           { count_col(); yylval.node = new TreeNode("..."); return(ELLIPSIS); }
+ /*"..."           { count_col(); yylval.node = new TreeNode("..."); return(ELLIPSIS); }*/
 ">>="           { count_col(); yylval.node = new TreeNode(">>="); return(RIGHT_ASSIGN); }
 "<<="           { count_col(); yylval.node = new TreeNode("<<="); return(LEFT_ASSIGN); }
 "+="            { count_col(); yylval.node = new TreeNode("+="); return(ADD_ASSIGN); }
