@@ -8,7 +8,7 @@ extern char* yytext;
 extern int column;
 extern FILE* yyin;
 extern FILE* yyout;
-extern int yylineno;
+extern int row,column;
 
 int yylex(void);
 TreeNode *root;
@@ -529,12 +529,13 @@ int main(int argc,char* argv[]){
     yyin = fopen(argv[1],"r");
     yyparse();
     root->write_json("result.json");
-    //yyclose(yyin);
+    fclose(yyin);
     return 0;
 }
 void yyerror(char const *s)
 {
 	//fflush(stdout);
-  printf("\n line:%d  %s",yylineno,s);
+  cout<<"line:"<<row<<" colum:"<<column;
+  cout<<s<<endl;
 	//printf("\n%*s\n%*s\n", column, "^", column, s);
 }
