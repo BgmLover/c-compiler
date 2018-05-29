@@ -57,7 +57,7 @@ void yyerror(const char*s);
 
 c_program: 
     translation_unit{
-        $$ = new TreeNode("c_program",1,$1);
+        root = new TreeNode("c_program",1,$1);
     };
 translation_unit:
     external_declaration{
@@ -525,8 +525,10 @@ initializer_list:
 
 %%
 
-int main(){
+int main(int argc,char* argv[]){
+    yyin = fopen(argv[1],"r");
     yyparse();
+    root->write_json("result.json");
     return 0;
 }
 void yyerror(char const *s)

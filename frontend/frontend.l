@@ -133,8 +133,8 @@ L?'(\\.|[^\\'\n])+'    { count_col(); return(CONSTANT); }
 "|"             { count_col(); yylval.node = new TreeNode("|"); return('|'); }
 "?"             { count_col(); yylval.node = new TreeNode("?"); return('?'); }
 
-[ \t\v\f]     { count_col(); return(' '); }
-\n              { count_row(); return('\n'); }
+[ \t\v\f]     { count_col();  }
+"\n"              { count_row(); }
 .               { /* Add code to complain about unmatched characters */ }
 
 %%
