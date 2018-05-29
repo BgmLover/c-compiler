@@ -24,13 +24,13 @@ TreeNode::TreeNode(string name,int num,...):TreeNode(name){
             }
         }
         this->col = first_child->col;
-        this->name = first_child->row;
+        this->row = first_child->row;
     }
 }
 
 void TreeNode::write_json(string path){
     ofstream outfile;
-    outfile.open (path);
+    outfile.open(path);
     traverse(this, outfile);
     outfile.close();
 }

@@ -8,4 +8,3 @@ cp tree.h dist/tree.h
 cd dist
 echo '#include"tree.h"\n' | cat - y.tab.hpp > y.tab.hpp.temp && rm y.tab.hpp && mv y.tab.hpp.temp y.tab.hpp
 g++ -std=c++11 -o compiler tree.cpp frontend.lex.yy.cpp y.tab.cpp
-./compiler ../../demo/demo.c

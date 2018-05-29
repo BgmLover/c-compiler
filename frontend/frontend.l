@@ -159,8 +159,8 @@ int yywrap(void){
 // }
 
 
-int yycol = 0;
-int yyrow = 0;
+int yycol = 1;
+int yyrow = 1;
 
 void count_col(void){
   int i;
@@ -177,7 +177,7 @@ void count_col(void){
 }
 
 void count_row(){
-  yycol = 0;
+  yycol = 1;
   yyrow++;
 }
 

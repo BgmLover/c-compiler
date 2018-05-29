@@ -528,7 +528,7 @@ initializer_list:
 int main(int argc,char* argv[]){
     yyin = fopen(argv[1],"r");
     yyparse();
-    root->write_json("result.json");
+    root->write_json("dist/result.json");
     fclose(yyin);
     return 0;
 }

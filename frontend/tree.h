@@ -17,10 +17,10 @@ using namespace std;
 
 class TreeNode {
 public:
-    string content;
-    string name;
-    int row;
-    int col;
+    string content = "";
+    string name = "";
+    int row = 0;
+    int col = 0;
     TreeNode *first_child;
     TreeNode *next_sibling;
     TreeNode()=default;
