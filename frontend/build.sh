@@ -1,3 +1,6 @@
+if [ ! -d "dist" ]; then
+  mkdir dist
+fi
 flex --outfile=dist/frontend.lex.yy.cpp frontend.l
 yacc --output=dist/y.tab.cpp -d frontend.y
 cp tree.cpp dist/tree.cpp
