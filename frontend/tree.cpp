@@ -50,10 +50,10 @@ void TreeNode::traverse(TreeNode *node, ofstream &outfile){
         traverse(node->first_child, outfile);
     }
     outfile << "]";
+    outfile << "}";
     if(node->next_sibling){
         outfile << ",";
         traverse(node->next_sibling, outfile);
     }
-    outfile << "";
 }
 
