@@ -65,8 +65,8 @@ extern YYSTYPE yylval;
 "while"           { count_col(); yylval.node = new TreeNode("while"); return(WHILE); }
 
 {L}({L}|{D})*     { count_col(); yylval.node = new TreeNode("identifier", yytext); return(IDENTIFIER); }
-0[xX]{H}+        { count_col(); yylval.node = new TreeNode("constant_int", yytext)/*TODO to int*/; return(CONSTANT); }
-0[0-7]*        { count_col(); yylval.node = new TreeNode("constant_int"); return(CONSTANT); }
+0[xX]{H}+        { count_col(); yylval.node = new TreeNode("constant_int", yytext); return(CONSTANT); }
+0[0-7]*        { count_col(); yylval.node = new TreeNode("constant_int", yytext); return(CONSTANT); }
 [1-9]{D}*        { count_col(); yylval.node = new TreeNode("constant_int", yytext); return(CONSTANT); }
  /*TODO negative constants? */
  /*

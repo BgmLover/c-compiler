@@ -9,7 +9,6 @@
 #include<cstdarg>
 #include <iostream>
 #include <fstream>
-//#include "json/json.h"
 
 extern char *yytext;
 extern int column,row;
@@ -28,8 +27,9 @@ public:
     TreeNode(string name);
     TreeNode(string name, string content);
     TreeNode(string name, int num, ...);
-    //void write_json(string path);
-    //void in_order(TreeNode* head,Json::Value jroot);
+    void write_json(string path);
+private:
+    void traverse(TreeNode *node, ofstream &outfile);
 };
 
 

@@ -68,43 +68,29 @@ TreeNode::TreeNode(string name,int num,...)
     }
 }
 
-// TreeNode::void write_json(string path)
-// {
-//     //遍历整棵树
-//     //root
-//     Json::jroot;
-//     in_order(root, jroot);
+void TreeNode::write_json(string path){
+    ofstream outfile;
+    outfile.open (path);
+    traverse(this, outfile);
+    outfile.close();
 
-//     //输出
-//     ofstream os;
-//     os.open(path);
-//     os << sw.write(jroot);
-//     os.close();
+}
 
-// }
 
-// TreeNode::void in_order(TreeNode* head,Json::Value jroot)
-// {
-//     //Json::Value jroot;
-//     jroot["name"] = Json::value(head->name);
-//     jroot["content"] = Json::value(head->content);
-//     jroot["col"] = Json::value(head->col);
-//     jroot["row"] = Json::value(head->row);
-//     //subtree
-//     Json::Value jsub1,jsub2;
-
-//     root["children"].append(jsub1);
-//     root["children"].append(jsub2);
-
-//     if(head->first_child!=NULL){
-//         Json::Value jsub1;
-//         root["children"].append(jsub1);
-//         in_order(head->first_child,jsub1);
-//     }
-//     if(head->next_sibling!=NULL){
-//         Json::Value jsub2;
-//         root["children"].append(jsub2);
-//         in_order(head->next_sibling,jsub2);
-//     }
-// }
+void TreeNode::traverse(TreeNode *node, ofstream &outfile){
+    outfile << "{";
+    outfile << "\"name\":\"" << node->name << "\",";
+    outfile << "\"content\:\"" << node->content << "\",";
+    outfile << "\"row\":" << to_string(node->row) << ",";
+    outfile << "\"col\":" << to_string(node->col) << ",";
+    outfile << "\"children\":[";
+    if(node->first_child){
+        traverse(node->first_child, outfile);
+    }
+    outfile << "]";
+    if(node->next_sibling){
+        outfile << ",";
+        traverse(node->next_sibling, outfile);
+    }
+}
 
