@@ -54,14 +54,14 @@ class Parser:
 
   def parse(self):
     #预定义两个已有函数
-    printNode=FunctionElement("print", "void", True)
-    paramNode=VarNode(type="int")
-    printNode.arguments.append(paramNode)
+    print_node=FunctionElement("print", "void", True)
+    param_node=TempElement(type="int")
+    print_node.arguments.append(param_node)
 
-    readNode=FunctionElement("read", "int", True)
+    read_node=FunctionElement("read", "int", True)
 
-    self.function_pool["print"]=printNode
-    self.function_pool["read"]=readNode
+    self.function_pool["print"]=print_node
+    self.function_pool["read"]=read_node
 
     if self.syntax_tree['name'] != 'c_program':
       err = ParserError(self.syntax_tree, 'Root node must be an "c_program"')
@@ -119,7 +119,7 @@ class Parser:
     function_name=declarator['children'][0]['children'][0]
 
     #function_node=FunctionElement(Name=function_name,Type=function_type,IsDefined=True)
-    isDeclared=False
+    is_declared=False
     declared_node=FunctionElement()
 
     if function_name in self.function_pool:
@@ -129,7 +129,6 @@ class Parser:
         declared_node=self.function_pool[function_name]
 
     function_block=Block()
-    function_block.isfunction=True
     function_block.function_node=FunctionElement(name=function_name, return_type=function_type, is_definition=True)
 
 
@@ -138,8 +137,9 @@ class Parser:
 
     self.parse_parameter_list(declarator['children'][2],function_name)
 
+
     function_node=self.function_pool[function_name]
-    if isDeclared:
+    if is_declared:
       if function_node.type !=declared_node.type:
         ParserError(node,'The types are different between the defined and the declared')
       if function_node.arguments.__len__()!=declared_node.arguments.__len__():
@@ -147,6 +147,8 @@ class Parser:
       for i in range(function_node.arguments.__len__()):
         if function_node.arguments[i].type!=declared_node.arguments[i].type:
           ParserError(node, 'The type of parameters are different between the defined and the declared')
+
+    self.ir_writer.create_function(function_node) #此处输出代码   Function f(var1,var2...)这样形式
 
     self.parser_compound_statement()
 
@@ -163,16 +165,65 @@ class Parser:
     | declaration_specifiers init_declarator_list
   """
   def parse_declaration(self, node):
+    declaration_specifiers=node['children'][0]
+    #这种情况形如  int ;  不需要继续解析
+    if node['children'][1]['content']==';':
+      return None
+
+    var_type=declaration_specifiers['childern'][0]['content']
+    if var_type=='VOID':
+      message=r"void can't be declaration specifier"
+      ParserError(node,message)
+    init_declarator_list=node['children'][1]
+    self.parse_init_declarator_list(var_type,init_declarator_list)
     return None
+
+  """
+  init_declarator_list:
+      init_declarator
+    | init_declarator_list ',' init_declarator
+  """
+  def parse_init_declarator_list(self,var_type,node):
+    if node['children'][0]['name'] == 'init_declarator_list':
+      self.parse_init_declarator_list(var_type,node['children'][0])
+      self.parse_init_declarator(var_type,node['children'][2])
+    else:
+      self.parse_init_declarator(var_type, node['children'][0])
+    return  None
+
+  """
+  init_declarator:
+      declarator
+    | declarator '=' initializer
+  """
+  def parse_init_declarator(self, var_type, node):
+    declarator=node['children'][0]
+    if node['children'].__len__()==1:
+      if declarator['children'][0]['name']=='IDENTIFIER':
+        id=declarator['children'][0]
+
   def parser_compound_statement(self):
-    pass
+    pass#TODO
+
+  """
+  parameter_list
+	: parameter_declaration
+	| parameter_list ',' parameter_declaration
+	
+	"""
 
   def parse_parameter_list(self,node,function_name):
     if node['children'][0]['name']=='parameter_list':
       self.parse_parameter_list(node['children'][0],function_name)
-      self.parse_parameter_declaration(node['children'][2])
+      self.parse_parameter_declaration(node['children'][2],function_name)
     else:
       self.parse_parameter_declaration(node['children'][0],function_name)
+
+  """
+    parameter_declaration:
+      type_specifier declarator
+    | type_specifier    //这种情况先不管
+  """
 
   def parse_parameter_declaration(self,node,function_name):
     type_specifier=node['children'][0]
@@ -183,7 +234,10 @@ class Parser:
       ParserError(node,message)
 
     var_name=declarator['children'][0]['content']
-    var_node=VarNode(name=var_name,type=var_type)
+    var_node=self.create_temp(var_type)
+
+    self.function_pool[function_name].arguments.append(var_node)  #把参数写到function_element里的参数列表里
+    self.block_stack[-1].variable_map[var_name]=var_node
 
 
   """
