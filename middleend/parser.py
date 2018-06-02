@@ -18,6 +18,7 @@ class Parser:
   block_stack = []
   function_pool = {}
   temp_counter = 0
+  label_counter = 0
 
   def lookup_variable(self, name):
     for block in reversed(self.block_stack):
@@ -29,6 +30,10 @@ class Parser:
     self.temp_counter += 1
     temp = TempElement(name='temp%d'%self.temp_counter, type=type)
     return temp
+
+  def create_label(self):
+    self.label_counter += 1
+    return 'label%d'%self.label_counter
 
   def __init__(self, syntax_tree, ir_writer):
     self.syntax_tree = syntax_tree
