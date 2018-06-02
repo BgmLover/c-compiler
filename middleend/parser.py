@@ -1,5 +1,10 @@
 from . import logger
 from .logger import Loggable
+from .block import Block
+from .block import VarNode
+from .block import FunNode
+from .block import ArrayNode
+
 
 class ParserError(Exception, Loggable):
   def __init__(self, node, message):

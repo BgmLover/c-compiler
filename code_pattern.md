@@ -15,9 +15,9 @@
 | IF var1 op var2 GOTO label n | 条件语句                                                     |
 | RETURN var1                  | 函数返回                                                     |
 | MALLOC var1[size]            | 申请大小为size的内存空间，并将申请到的连续内存首地址赋给var1 |
-| CALL f                       | 调用函数并不需要返回值    ！是否要把参数列表放进去这里还没想好 |
-| var1 = CALL f                | 调用函数并将返回值赋给var1                                   |
-| FUNCTION f                   | 声明函数f                                                    |
+| CALL f (var1,var2,var3...)                       | 调用函数并不需要返回值     |
+| var1 = CALL f(var1,var2,var3...)                | 调用函数并将返回值赋给var1                                   |
+| FUNCTION f(var1,var2,var3...)                    | 声明函数f                                                    |
 |                              |                                                              |
 |                              |                                                              |
 |                              |                                                              |
