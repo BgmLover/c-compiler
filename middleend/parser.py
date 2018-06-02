@@ -1,9 +1,8 @@
 from . import logger
 from .logger import Loggable
 from .block import Block
-from .block import VarNode
-from .block import FunNode
-from .block import ArrayNode
+from .elements import TempElement
+from .elements import FunctionElement
 
 
 class ParserError(Exception, Loggable):
@@ -16,15 +15,20 @@ class ParserError(Exception, Loggable):
 class Parser:
   ir_writer = None
   syntax_tree = None
-  block_stack=[]
-  function_pool={}
+  block_stack = []
+  function_pool = {}
+  temp_counter = 0
 
+  def lookup_variable(self, name):
+    for block in reversed(self.block_stack):
+      if name in block.variable_map:
+        return block.variable_map[name]
+    return None
 
-
-  tmp_counter = 0
-  def get_tmp(self):
-    self.tmp_counter += 1
-    return 'temp%d'%self.tmp_counter
+  def create_temp(self, type):
+    self.temp_counter += 1
+    temp = TempElement(name='temp%d'%self.temp_counter, type=type)
+    return temp
 
   def __init__(self, syntax_tree, ir_writer):
     self.syntax_tree = syntax_tree
@@ -35,11 +39,11 @@ class Parser:
 
   def parse(self):
     #预定义两个已有函数
-    printNode=FunNode("print","void",True)
+    printNode=FunctionElement("print", "void", True)
     paramNode=VarNode(Type="int")
     printNode.arguments.append(paramNode)
 
-    readNode=FunNode("read","int",True)
+    readNode=FunctionElement("read", "int", True)
 
     self.function_pool["print"]=printNode
     self.function_pool["read"]=readNode
@@ -99,11 +103,11 @@ class Parser:
     function_type=declaration_specifier['children'][0]['content']
     function_name=declarator['children'][0]['children'][0]
 
-    #function_node=FunNode(Name=function_name,Type=function_type,IsDefined=True)
+    #function_node=FunctionElement(Name=function_name,Type=function_type,IsDefined=True)
     isDeclared=False
-    declared_node=FunNode()
+    declared_node=FunctionElement()
 
-    if self.function_pool.__contains__(function_name):
+    if function_name in self.function_pool:
       if self.function_pool[function_name].isDefined :
         ParserError(node,'The function'+function_name+'has been defined before')
       else:
@@ -111,11 +115,11 @@ class Parser:
 
     function_block=Block()
     function_block.isfunction=True
-    function_block.funcNode=FunNode(Name=function_name,Type=function_type,IsDefined=True)
+    function_block.function_node=FunctionElement(name=function_name, return_type=function_type, is_definition=True)
 
 
     self.block_stack.append(function_block)
-    self.function_pool[function_name]=function_block.funcNode
+    self.function_pool[function_name]=function_block.function_node
 
     self.parse_parameter_list(declarator['children'][2],function_name)
 
