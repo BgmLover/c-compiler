@@ -40,7 +40,7 @@ class Parser:
   def parse(self):
     #预定义两个已有函数
     printNode=FunctionElement("print", "void", True)
-    paramNode=VarNode(Type="int")
+    paramNode=VarNode(type="int")
     printNode.arguments.append(paramNode)
 
     readNode=FunctionElement("read", "int", True)
@@ -168,7 +168,7 @@ class Parser:
       ParserError(node,message)
 
     var_name=declarator['children'][0]['content']
-    var_node=VarNode(Name=var_name,Type=var_type)
+    var_node=VarNode(name=var_name,type=var_type)
 
 
   """
