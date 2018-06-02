@@ -263,7 +263,19 @@ class Parser:
     if children[0]['name'] == 'logical_or_expression':
       return self.parse_logical_or_expression(children[0])
     else:
-      pass #TODO
+      left = self.parse_unary_expression(children[0])
+      right = self.parse_assignment_expression(children[2])
+      right_result = self.do_binomial_operation(
+        left,
+        children[1]['name'][:-1],
+        right,
+        right.type
+      )
+      self.ir_writer.assignment(
+        left,
+        right_result
+      )
+      return left
 
   """
   logical_or_expression

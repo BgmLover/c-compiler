@@ -28,6 +28,11 @@ class IRWriter:
     code+=')'
     self.CodeList.append(code)
 
+  def assignment(self, dist, src):
+    code = str(dist)+' := '+str(src)
+    self.CodeList.append(code)
+
+
 
 
 
