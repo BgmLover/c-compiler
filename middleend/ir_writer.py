@@ -14,6 +14,13 @@ class IRWriter:
     code='LABEL '+label+":"
     self.CodeList.append(code)
 
+  def create_function(self,function_element):
+    code='Function '+function_element.name+'('
+    for param in function_element.argument:
+      code+=param.name+','
+    code+=')'
+    self.CodeList.append(code)
+
 
 
 
