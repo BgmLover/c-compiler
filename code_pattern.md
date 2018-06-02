@@ -1,12 +1,10 @@
-
-
 ## The pattern of the intermidiate code 
 
 | Grammer                      | Description                                                  |
 | :--------------------------- | :----------------------------------------------------------- |
 | LABEL n :                    | 声明标签（n=0,1,2,3....）                                    |
-| var1 := var2 op var3         | 算术/逻辑运算                                                |
-| var1 := #3                   | 常数赋值                                                     |
+| var1 := var2/1 op var3/1         | 算术/逻辑运算                                                |
+| var1 := 3                   | 常数赋值                                                     |
 | var1 := var2                 | 赋值                                                         |
 | var1 := *var2                | 将以var2值为地址的内存中的值赋值给var1                       |
 | var1 := &var2                | 将变量var2在内存中的地址值赋值给var1                         |
