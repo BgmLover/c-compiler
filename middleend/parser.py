@@ -302,6 +302,13 @@ class Parser:
   def parse_logical_and_expression(self, node):
     children = node['children']
     if children[0]['name'] == 'inclusive_or_expression':
+      return self.parse_inclusive_or_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_logical_and_expression(children[0]),
+        '&&',
+        self.parse_inclusive_or_expression(children[2])
+      )
 
   """
   inclusive_or_expression
