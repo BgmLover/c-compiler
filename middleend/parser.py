@@ -21,6 +21,11 @@ class Parser:
 
 
 
+  tmp_counter = 0
+  def get_tmp(self):
+    self.tmp_counter += 1
+    return 'temp%d'%self.tmp_counter
+
   def __init__(self, syntax_tree, ir_writer):
     self.syntax_tree = syntax_tree
     self.ir_writer = ir_writer
@@ -71,7 +76,6 @@ class Parser:
     : function_definition
     | declaration
   """
-
   def parse_external_declaration(self, node):
     children = node['children']
     if children[0]['name'] == 'function_definition':
@@ -161,5 +165,75 @@ class Parser:
 
     var_name=declarator['children'][0]['content']
     var_node=VarNode(name=var_name,type=var_type)
+
+
+  """
+  expression
+	  : assignment_expression
+	  | expression ',' assignment_expression
+  """
+  def parse_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'assignment_expression':
+      self.parse_assignment_expression(children[0])
+    else:
+      self.parse_expression(children[0])
+      self.parse_assignment_expression(children[1])
+
+  """
+  assignment_expression
+    : logical_or_expression
+    | unary_expression assignment_operator assignment_expression
+  """
+  def parse_assignment_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'logical_or_expression':
+      self.parse_logical_or_expression(children[0])
+    else:
+      pass #TODO
+
+  """
+  logical_or_expression
+    : logical_and_expression
+    | logical_or_expression OR_OP logical_and_expression
+  """
+  def parse_logical_or_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'logical_and_expression':
+      self.parse_logical_and_expression(children[0])
+
+
+  """
+  logical_and_expression
+    : inclusive_or_expression
+    | logical_and_expression AND_OP inclusive_or_expression
+  """
+  def parse_logical_and_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'inclusive_or_expression':
+
+  """
+  inclusive_or_expression
+    : exclusive_or_expression
+    | inclusive_or_expression '|' exclusive_or_expression
+  """
+  def parse_inclusive_or_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'exclusive_or_expression':
+      return self.parse_exclusive_or_expression(children[0])
+    else:
+      pass #TODO
+
+  """
+  exclusive_or_expression
+    : and_expression
+    | exclusive_or_expression '^' and_expression
+  """
+  def parse_exclusive_or_expression(self, node):
+    children = node['children']
+    return children[0]['name'] == 'and_expression'
+
+
+
 
 
