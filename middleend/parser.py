@@ -31,7 +31,7 @@ class Parser:
   def parse(self):
     #预定义两个已有函数
     printNode=FunNode("print","void",True)
-    paramNode=VarNode(Type="int")
+    paramNode=VarNode(type="int")
     printNode.arguments.append(paramNode)
 
     readNode=FunNode("read","int",True)
@@ -107,7 +107,7 @@ class Parser:
 
     function_block=Block()
     function_block.isfunction=True
-    function_block.funcNode=FunNode(Name=function_name,Type=function_type,IsDefined=True)
+    function_block.funcNode=FunNode(name=function_name,type=function_type,isdefined=True)
 
 
     self.block_stack.append(function_block)
@@ -160,6 +160,6 @@ class Parser:
       ParserError(node,message)
 
     var_name=declarator['children'][0]['content']
-    var_node=VarNode(Name=var_name,Type=var_type)
+    var_node=VarNode(name=var_name,type=var_type)
 
 

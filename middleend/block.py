@@ -4,11 +4,11 @@ class VarNode:
   id=-1
   useAddress=False
 
-  def __init__(self,Name=None,Type=None,Id=-1,UseAddr=False):
-    self.name=Name
-    self.type=Type
-    self.id=Id
-    self.useAddress=UseAddr
+  def __init__(self,name=None,type=None,id=-1,use_address=False):
+    self.name=name
+    self.type=type
+    self.id=id
+    self.useAddress=use_address
 
 
 class FunNode:
@@ -17,11 +17,11 @@ class FunNode:
   type=None
   arguments=[]
 
-  def __init__(self,Name=None,Type=None,IsDefined=False,Arguments=None):
-    self.isDefined=IsDefined
-    self.name=Name
-    self.type=Type
-    self.arguments=Arguments
+  def __init__(self,name=None,type=None,is_defined=False,arguments=None):
+    self.isDefined=is_defined
+    self.name=name
+    self.type=type
+    self.arguments=arguments
 
 
 class ArrayNode:
@@ -29,10 +29,10 @@ class ArrayNode:
   type=None
   size=0
 
-  def __init__(self,Name,Type,Size):
-    self.type=Type
-    self.name=Name
-    self.size=Size
+  def __init__(self,name,type,size):
+    self.type=type
+    self.name=name
+    self.size=size
 
 class Block:
   funcNode=None
