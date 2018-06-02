@@ -1,3 +1,5 @@
+from .elements import TempElement
+
 class IRWriter:
   outfile = None
   id_temp=0
@@ -6,13 +8,19 @@ class IRWriter:
   id_array=0
 
   CodeList=[]
+
   def __init__(self, path):
     self.outfile = open(path)
 
   def create_label(self, label):
     #self.outfile.write('LABEL %s:\n'%label)
-    code='LABEL '+label+":"
+    code='LABEL '+label+':'
     self.CodeList.append(code)
+
+  def binomial_operation(self, dist, src1, operand, src2):
+    code = str(dist)+' := '+str(src1)+' '+operand+' '+str(src2)
+    self.CodeList.append(code)
+
 
 
 

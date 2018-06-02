@@ -6,8 +6,10 @@ class TempElement:
   def __init__(self, name=None, type=None, is_pointer=False):
     self.name=name
     self.type=type
-    self.id=id
     self.is_pointer=is_pointer
+
+  def __str__(self):
+    return self.name
 
 
 class FunctionElement:

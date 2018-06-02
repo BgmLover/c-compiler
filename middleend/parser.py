@@ -35,6 +35,16 @@ class Parser:
     self.label_counter += 1
     return 'label%d'%self.label_counter
 
+  def do_binomial_operation(self, src1, operand, src2, type='int'):
+    result = self.create_temp(type)
+    self.ir_writer.binomial_operation(
+      result,
+      src1,
+      operand,
+      src2
+    )
+    return result
+
   def __init__(self, syntax_tree, ir_writer):
     self.syntax_tree = syntax_tree
     self.ir_writer = ir_writer
@@ -184,10 +194,10 @@ class Parser:
   def parse_expression(self, node):
     children = node['children']
     if children[0]['name'] == 'assignment_expression':
-      self.parse_assignment_expression(children[0])
+      return self.parse_assignment_expression(children[0])
     else:
       self.parse_expression(children[0])
-      self.parse_assignment_expression(children[1])
+      return self.parse_assignment_expression(children[1])
 
   """
   assignment_expression
@@ -197,7 +207,7 @@ class Parser:
   def parse_assignment_expression(self, node):
     children = node['children']
     if children[0]['name'] == 'logical_or_expression':
-      self.parse_logical_or_expression(children[0])
+      return self.parse_logical_or_expression(children[0])
     else:
       pass #TODO
 
@@ -210,6 +220,12 @@ class Parser:
     children = node['children']
     if children[0]['name'] == 'logical_and_expression':
       self.parse_logical_and_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_logical_or_expression(children[0]),
+        '||',
+        self.parse_logical_and_expression(children[2])
+      )
 
 
   """
@@ -231,7 +247,11 @@ class Parser:
     if children[0]['name'] == 'exclusive_or_expression':
       return self.parse_exclusive_or_expression(children[0])
     else:
-      pass #TODO
+      return self.do_binomial_operation(
+        self.parse_inclusive_or_expression(children[0]),
+        '|',
+        self.parse_exclusive_or_expression(children[2])
+      )
 
   """
   exclusive_or_expression
@@ -240,7 +260,150 @@ class Parser:
   """
   def parse_exclusive_or_expression(self, node):
     children = node['children']
-    return children[0]['name'] == 'and_expression'
+    if children[0]['name'] == 'and_expression':
+      return self.parse_and_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_exclusive_or_expression(children[0]),
+        '^',
+        self.parse_and_expression(children[2])
+      )
+
+  """
+  and_expression
+    : equality_expression
+    | and_expression '&' equality_expression
+  """
+  def parse_and_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'equality_expression':
+      return self.parse_equality_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_and_expression(children[0]),
+        '&',
+        self.parse_equality_expression(children[2])
+      )
+
+  """
+  equality_expression
+    : relational_expression
+    | equality_expression EQ_OP relational_expression
+    | equality_expression NE_OP relational_expression
+  """
+  def parse_equality_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'relational_expression':
+      return self.parse_relational_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_equality_expression(children[0]),
+        children[1]['name'],
+        self.parse_relational_expression(children[2])
+      )
+
+  """
+  relational_expression
+    : shift_expression
+    | relational_expression '<' shift_expression
+    | relational_expression '>' shift_expression
+    | relational_expression LE_OP shift_expression
+    | relational_expression GE_OP shift_expression
+  """
+  def parse_relational_expression(self, node):
+    children = node['children']
+    if len(children) == 1:
+      return self.parse_shift_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_relational_expression(children[0]),
+        children[1]['name'],
+        self.parse_shift_expression(children[2])
+      )
+
+  """
+  shift_expression
+    : additive_expression
+    | shift_expression LEFT_OP additive_expression
+    | shift_expression RIGHT_OP additive_expression
+  """
+  def parse_shift_expression(self, node):
+    children = node['children']
+    if len(children) == 1:
+      return self.parse_additive_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_relational_expression(children[0]),
+        children[1]['name'],
+        self.parse_shift_expression(children[2])
+      )
+
+  """
+  additive_expression
+    : multiplicative_expression
+    | additive_expression '+' multiplicative_expression
+    | additive_expression '-' multiplicative_expression
+  """
+  def parse_additive_expression(self, node):
+    children = node['children']
+    if len(children) == 1:
+      return self.parse_multiplicative_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_additive_expression(children[0]),
+        children[1]['name'],
+        self.parse_multiplicative_expression(children[2])
+      )
+
+  """
+  multiplicative_expression
+    : unary_expression
+    | multiplicative_expression '*' unary_expression
+    | multiplicative_expression '/' unary_expression
+    | multiplicative_expression '%' unary_expression
+  """
+  def parse_multiplicative_expression(self, node):
+    children = node['children']
+    if len(children) == 1:
+      return self.parse_unary_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_multiplicative_expression(children[0]),
+        children[1]['name'],
+        self.parse_unary_expression(children[2])
+      )
+
+  """
+  unary_expression
+    : postfix_expression
+    | INC_OP unary_expression
+    | DEC_OP unary_expression
+    | unary_operator unary_expression
+  """
+  def parse_unary_expression(self, node):
+    children = node['children']
+    if children[0]['name']:
+      self.parse_postfix_expression(children[0])
+    else:
+      if children[0]['name'] == '++':
+
+
+
+  """
+  postfix_expression
+    : primary_expression
+    | postfix_expression '[' expression ']'
+    | postfix_expression '(' ')'
+    | postfix_expression '(' argument_expression_list ')'
+    | postfix_expression INC_OP
+    | postfix_expression DEC_OP
+  """
+  def parse_postfix_expression(self, node):
+
+
+
+
+
 
 
 
