@@ -1,5 +1,10 @@
 from . import logger
 from .logger import Loggable
+from .block import Block
+from .block import VarNode
+from .block import FunNode
+from .block import ArrayNode
+
 
 class ParserError(Exception, Loggable):
   def __init__(self, node, message):
@@ -11,6 +16,10 @@ class ParserError(Exception, Loggable):
 class Parser:
   ir_writer = None
   syntax_tree = None
+  block_stack=[]
+  function_pool={}
+
+
 
   tmp_counter = 0
   def get_tmp(self):
@@ -20,8 +29,21 @@ class Parser:
   def __init__(self, syntax_tree, ir_writer):
     self.syntax_tree = syntax_tree
     self.ir_writer = ir_writer
+    #预置一个最大的Block
+    whole_block=Block()
+    self.block_stack.append(whole_block)
 
   def parse(self):
+    #预定义两个已有函数
+    printNode=FunNode("print","void",True)
+    paramNode=VarNode(Type="int")
+    printNode.arguments.append(paramNode)
+
+    readNode=FunNode("read","int",True)
+
+    self.function_pool["print"]=printNode
+    self.function_pool["read"]=readNode
+
     if self.syntax_tree['name'] != 'c_program':
       err = ParserError(self.syntax_tree, 'Root node must be an "c_program"')
       logger.error(err)
@@ -62,7 +84,59 @@ class Parser:
       self.parse_declaration(children[0])
 
   def parse_function_definition(self, node):
-    pass
+    children=node['children']
+    declaration_specifier=children[0]
+    declarator=children[1]
+    compound_statement=None
+
+    if children[2]['name']=='declaration_list':
+      declaration_list=children[2]
+      compound_statement=children[3]
+    else:
+      compound_statement=children[2]
+
+    #type_specifier
+    function_type=declaration_specifier['children'][0]['content']
+    function_name=declarator['children'][0]['children'][0]
+
+    #function_node=FunNode(Name=function_name,Type=function_type,IsDefined=True)
+    isDeclared=False
+    declared_node=FunNode()
+
+    if self.function_pool.__contains__(function_name):
+      if self.function_pool[function_name].isDefined :
+        ParserError(node,'The function'+function_name+'has been defined before')
+      else:
+        declared_node=self.function_pool[function_name]
+
+    function_block=Block()
+    function_block.isfunction=True
+    function_block.funcNode=FunNode(Name=function_name,Type=function_type,IsDefined=True)
+
+
+    self.block_stack.append(function_block)
+    self.function_pool[function_name]=function_block.funcNode
+
+    self.parse_parameter_list(declarator['children'][2],function_name)
+
+    function_node=self.function_pool[function_name]
+    if isDeclared:
+      if function_node.type !=declared_node.type:
+        ParserError(node,'The types are different between the defined and the declared')
+      if function_node.arguments.__len__()!=declared_node.arguments.__len__():
+        ParserError(node,'The number of parameters are different between the defined and the declared')
+      for i in range(function_node.arguments.__len__()):
+        if function_node.arguments[i].type!=declared_node.arguments[i].type:
+          ParserError(node, 'The type of parameters are different between the defined and the declared')
+
+    self.parser_compound_statement()
+
+    self.block_stack.pop(-1)
+
+    return None
+
+
+
 
   """
   declaration
@@ -70,7 +144,28 @@ class Parser:
     | declaration_specifiers init_declarator_list
   """
   def parse_declaration(self, node):
+    return None
+  def parser_compound_statement(self):
     pass
+
+  def parse_parameter_list(self,node,function_name):
+    if node['children'][0]['name']=='parameter_list':
+      self.parse_parameter_list(node['children'][0],function_name)
+      self.parse_parameter_declaration(node['children'][2])
+    else:
+      self.parse_parameter_declaration(node['children'][0],function_name)
+
+  def parse_parameter_declaration(self,node,function_name):
+    type_specifier=node['children'][0]
+    declarator=node['children'][1]
+    var_type=type_specifier['children'][0]['content']
+    if var_type=='VOID':
+      message=r"var with type void can't be parameter"
+      ParserError(node,message)
+
+    var_name=declarator['children'][0]['content']
+    var_node=VarNode(Name=var_name,Type=var_type)
+
 
   """
   expression
