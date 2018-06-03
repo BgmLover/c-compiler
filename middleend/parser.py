@@ -26,6 +26,11 @@ class Parser:
         return block.variable_map[name]
     return None
 
+  def lookup_variable_current_block(self,name):
+    if name in self.block_stack[-1]:
+      return self.block_stack[-1][name]
+    return None
+
   def create_temp(self, type):
     self.temp_counter += 1
     temp = TempElement(name='temp%d'%self.temp_counter, type=type)
@@ -116,7 +121,7 @@ class Parser:
 
     #type_specifier
     function_type=declaration_specifier['children'][0]['content']
-    function_name=declarator['children'][0]['children'][0]
+    function_name=declarator['children'][0]['children'][0]['content']
 
     #function_node=FunctionElement(Name=function_name,Type=function_type,IsDefined=True)
     is_declared=False
@@ -134,8 +139,9 @@ class Parser:
 
     self.block_stack.append(function_block)
     self.function_pool[function_name]=function_block.function_node
-
-    self.parse_parameter_list(declarator['children'][2],function_name)
+    #带参函数
+    if declarator['children'][2]['name']=='parameter_list':
+      self.parse_parameter_list(declarator['children'][2],function_name)
 
 
     function_node=self.function_pool[function_name]
@@ -201,7 +207,17 @@ class Parser:
     if node['children'].__len__()==1:
       if declarator['children'][0]['name']=='IDENTIFIER':
         id=declarator['children'][0]
-
+        var_name=id['content']
+        if self.lookup_variable_current_block(var_name)==None:  #在当前作用域查找，这个变量不能重复定义
+          var_element=self.create_temp(var_type)
+          self.block_stack[-1][var_name]=var_element
+        else:
+          ParserError(node,r'the IDENTIFIER'+var_name+'has been declared before')
+      else:
+        # 数组
+        if declarator['children'][1]['name']=='[':
+          pointer_name=declarator['children'][0]['children'][0]['content']
+          
   def parser_compound_statement(self):
     pass#TODO
 
