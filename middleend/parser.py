@@ -489,22 +489,13 @@ class Parser:
     | DEC_OP unary_expression
     | unary_operator unary_expression
   """
-  def parse_unary_expression(self, node:dict, target_type:str='temp') -> TempElement or ConstantElement:
+  def parse_unary_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name']:
-      e = self.parse_postfix_expression(children[0])
-      if isinstance(e, IdentifierElement):
-        if target_type == 'function':
-          return self.lookup_function(e)
-        else:
-          return self.lookup_variable(e)
-      else:
-        return e
+      return self.parse_postfix_expression(children[0])
     else:
       u = self.parse_unary_expression(children[1])
-      if isinstance(u, IdentifierElement):
-        u = self.lookup_variable(u)
-      if isinstance(u, TempElement):
+      if isinstance(u, ConstantElement):
         err = ParserError(node, 'Expression should be modifiable.')
         logger.error(err)
       if children[0]['name'] == '++' or children[0]['name'] == '++':
@@ -531,27 +522,49 @@ class Parser:
     | postfix_expression INC_OP
     | postfix_expression DEC_OP
   """
-  def parse_postfix_expression(self, node:dict) -> TempElement or ConstantElement or IdentifierElement:
+  def parse_postfix_expression(self, node:dict, target_type:str='temp') -> TempElement or ConstantElement or FunctionElement:
     children = node['children']
-    if len(children):
-      return self.parse_primary_expression(children[0])
+    if len(children) == 0:
+      e = self.parse_primary_expression(children[0])
+      if isinstance(e, IdentifierElement):
+        if target_type == 'function':
+          return self.lookup_function(e, children[0])
+        else:
+          return self.lookup_variable(e, children[0])
+      else:
+        return e
     else:
-      e = self.parse_postfix_expression(children[0])
       if children[1]['name'] == '[':
-        if isinstance(e, IdentifierElement):
-          e = self.lookup_variable(e)
-        result = self.create_temp(e.type)
+        v = self.parse_postfix_expression(children[0])
+        if isinstance(v, IdentifierElement):
+          v = self.lookup_variable(v, children[0])
+        result = self.create_temp(v.type)
         self.ir_writer.unary_operation(
           result,
-          str(e)+'['+str(self.parse_expression(children[2]))+']'
+          str(v)+'['+str(self.parse_expression(children[2]))+']'
         )
         return result
       elif children[1]['name'] == '(':
-        pass
-      elif children[1]['name'] == '++':
-        if isinstance(e, IdentifierElement):
-          e = self.lookup_variable(e)
-        result = self.create_temp(e.type)
+        f = self.parse_postfix_expression(children[0], 'function')
+        if len(children) == 4:
+          arguments = self.parse_argument_expression_list(children[2])
+        else:
+          arguments = []
+        self.ir_writer.call_function(f, arguments)
+      else: # ++ and --
+        v = self.parse_postfix_expression(children[0])
+        result = self.create_temp(v.type)
+        self.ir_writer.assignment(
+          result,
+          v
+        )
+        self.ir_writer.binomial_operation(
+          v,
+          v,
+          children[1]['name'][:1],
+          1
+        )
+        return result
 
 
   """

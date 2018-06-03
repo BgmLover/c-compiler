@@ -1,4 +1,4 @@
-from .elements import TempElement
+from .elements import TempElement, FunctionElement
 
 class IRWriter:
   outfile = None
@@ -40,9 +40,8 @@ class IRWriter:
     code+=')'
     self.CodeList.append(code)
 
-  def assignment(self, dist, src):
-    code = str(dist)+' := '+str(src)
-    self.CodeList.append(code)
+  def call_function(self, function:FunctionElement, arguments):
+    pass #TODO
 
 
 
