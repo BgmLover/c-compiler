@@ -40,9 +40,15 @@ class IRWriter:
     code+=')'
     self.CodeList.append(code)
 
-  def call_function(self, function:FunctionElement, arguments):
-    pass #TODO
-
+  def call_function(self, function:FunctionElement, arguments, save_to:TempElement=None):
+    arguments_str = ''
+    for argument in arguments:
+      arguments_str += str(argument) + ','
+    arguments_str = arguments_str[:-1]
+    code = 'CALL '+str(function)+' ('+arguments_str+')'
+    if save_to is not None:
+      code = str(save_to) + ' := ' + code
+    self.CodeList.append(code)
 
 
 

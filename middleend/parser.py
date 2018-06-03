@@ -2,6 +2,8 @@ from . import logger
 from .logger import Loggable
 from .block import Block
 from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement, ArrayItemElement
+from typing import List
+
 
 
 class ParserError(Exception, Loggable):
@@ -279,7 +281,7 @@ class Parser:
 	  : assignment_expression
 	  | expression ',' assignment_expression
   """
-  def parse_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'assignment_expression':
       return self.parse_assignment_expression(children[0])
@@ -292,7 +294,7 @@ class Parser:
     : logical_or_expression
     | unary_expression assignment_operator assignment_expression
   """
-  def parse_assignment_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_assignment_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'logical_or_expression':
       return self.parse_logical_or_expression(children[0])
@@ -318,7 +320,7 @@ class Parser:
     : logical_and_expression
     | logical_or_expression OR_OP logical_and_expression
   """
-  def parse_logical_or_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_logical_or_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'logical_and_expression':
       self.parse_logical_and_expression(children[0])
@@ -335,7 +337,7 @@ class Parser:
     : inclusive_or_expression
     | logical_and_expression AND_OP inclusive_or_expression
   """
-  def parse_logical_and_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_logical_and_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'inclusive_or_expression':
       return self.parse_inclusive_or_expression(children[0])
@@ -351,7 +353,7 @@ class Parser:
     : exclusive_or_expression
     | inclusive_or_expression '|' exclusive_or_expression
   """
-  def parse_inclusive_or_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_inclusive_or_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'exclusive_or_expression':
       return self.parse_exclusive_or_expression(children[0])
@@ -367,7 +369,7 @@ class Parser:
     : and_expression
     | exclusive_or_expression '^' and_expression
   """
-  def parse_exclusive_or_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_exclusive_or_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'and_expression':
       return self.parse_and_expression(children[0])
@@ -383,7 +385,7 @@ class Parser:
     : equality_expression
     | and_expression '&' equality_expression
   """
-  def parse_and_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_and_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'equality_expression':
       return self.parse_equality_expression(children[0])
@@ -400,7 +402,7 @@ class Parser:
     | equality_expression EQ_OP relational_expression
     | equality_expression NE_OP relational_expression
   """
-  def parse_equality_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_equality_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'relational_expression':
       return self.parse_relational_expression(children[0])
@@ -419,7 +421,7 @@ class Parser:
     | relational_expression LE_OP shift_expression
     | relational_expression GE_OP shift_expression
   """
-  def parse_relational_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_relational_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_shift_expression(children[0])
@@ -436,7 +438,7 @@ class Parser:
     | shift_expression LEFT_OP additive_expression
     | shift_expression RIGHT_OP additive_expression
   """
-  def parse_shift_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_shift_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_additive_expression(children[0])
@@ -453,7 +455,7 @@ class Parser:
     | additive_expression '+' multiplicative_expression
     | additive_expression '-' multiplicative_expression
   """
-  def parse_additive_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_additive_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_multiplicative_expression(children[0])
@@ -471,7 +473,7 @@ class Parser:
     | multiplicative_expression '/' unary_expression
     | multiplicative_expression '%' unary_expression
   """
-  def parse_multiplicative_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_multiplicative_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_unary_expression(children[0])
@@ -489,7 +491,7 @@ class Parser:
     | DEC_OP unary_expression
     | unary_operator unary_expression
   """
-  def parse_unary_expression(self, node:dict) -> TempElement or ConstantElement:
+  def parse_unary_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name']:
       return self.parse_postfix_expression(children[0])
@@ -522,7 +524,7 @@ class Parser:
     | postfix_expression INC_OP
     | postfix_expression DEC_OP
   """
-  def parse_postfix_expression(self, node:dict, target_type:str='temp') -> TempElement or ConstantElement or FunctionElement:
+  def parse_postfix_expression(self, node:dict, target_type:str='temp') -> TempElement or ConstantElement or ArrayItemElement or FunctionElement:
     children = node['children']
     if len(children) == 0:
       e = self.parse_primary_expression(children[0])
@@ -577,7 +579,19 @@ class Parser:
     else:
       return self.parse_expression(children[1])
 
-
+  """
+  argument_expression_list:
+    : assignment_expression
+    | argument_expression_list ',' assignment_expression
+  """
+  def parse_argument_expression_list(self, node:dict) -> List[TempElement or ConstantElement or ArrayItemElement]:
+    children = node['children']
+    if len(children) == 1:
+      return [self.parse_assignment_expression(children[0])]
+    else:
+      arguments = self.parse_argument_expression_list(children[0])
+      arguments.append(self.parse_assignment_expression(children[2]))
+      return arguments
 
 
 
