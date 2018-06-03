@@ -20,6 +20,9 @@ class Parser:
   temp_counter = 0
   label_counter = 0
 
+  def lookup_identifier(self, name):
+    pass #TODO for zq
+
   def lookup_variable(self, name):
     for block in reversed(self.block_stack):
       if name in block.variable_map:
@@ -279,7 +282,21 @@ class Parser:
     if children[0]['name'] == 'logical_or_expression':
       return self.parse_logical_or_expression(children[0])
     else:
-      pass #TODO
+      left = self.parse_unary_expression(children[0])
+      right = self.parse_assignment_expression(children[2])
+      if children[1]['name'] == '=':
+        self.ir_writer.assignment(
+          left,
+          right
+        )
+      else:
+        self.ir_writer.binomial_operation(
+          left,
+          left,
+          children[1]['name'][:-1],
+          right
+        )
+      return left
 
   """
   logical_or_expression
@@ -306,6 +323,13 @@ class Parser:
   def parse_logical_and_expression(self, node):
     children = node['children']
     if children[0]['name'] == 'inclusive_or_expression':
+      return self.parse_inclusive_or_expression(children[0])
+    else:
+      return self.do_binomial_operation(
+        self.parse_logical_and_expression(children[0]),
+        '&&',
+        self.parse_inclusive_or_expression(children[2])
+      )
 
   """
   inclusive_or_expression
@@ -455,7 +479,21 @@ class Parser:
     if children[0]['name']:
       self.parse_postfix_expression(children[0])
     else:
-      if children[0]['name'] == '++':
+      u = self.parse_unary_expression(children[1])
+      if children[0]['name'] == '++' or children[0]['name'] == '++':
+        self.ir_writer.binomial_operation(
+          u,
+          u,
+          children[0]['name'][:1],
+          1
+        )
+      else:
+        self.ir_writer.unary_operation(
+          u,
+          children[0],
+          u
+        )
+      return u
 
 
 
@@ -469,8 +507,23 @@ class Parser:
     | postfix_expression DEC_OP
   """
   def parse_postfix_expression(self, node):
+    children = node['children']
+    if len(children):
+      return self.parse_primary_expression(children[0])
+    else:
 
-
+  """
+  primary_expression:
+    : IDENTIFIER
+    | CONSTANT_INT
+    # | CONSTANT_DOUBLE
+    # | STRING_LITERAL
+    | '(' expression ')'
+  """
+  def parse_primary_expression(self, node):
+    children = node['children']
+    if children[0]['name'] == 'identifier':
+      return self.lookup_identifier()
 
 
 
