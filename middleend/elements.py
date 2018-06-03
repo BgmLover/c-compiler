@@ -24,6 +24,19 @@ class ConstantElement:
     return self.value
 
 
+class ArrayItemElement:
+  array:TempElement = None
+  item:TempElement or ConstantElement = None
+
+  def __init__(self, array:TempElement=None, item:TempElement or ConstantElement=None):
+    self.array = array
+    self.item = item
+
+  def __str__(self):
+    return str(self.array)+'['+str(self.item)+']'
+
+
+
 class IdentifierElement:
   name = None
 

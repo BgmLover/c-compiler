@@ -1,7 +1,7 @@
 from . import logger
 from .logger import Loggable
 from .block import Block
-from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement
+from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement, ArrayItemElement
 
 
 class ParserError(Exception, Loggable):
@@ -536,14 +536,7 @@ class Parser:
     else:
       if children[1]['name'] == '[':
         v = self.parse_postfix_expression(children[0])
-        if isinstance(v, IdentifierElement):
-          v = self.lookup_variable(v, children[0])
-        result = self.create_temp(v.type)
-        self.ir_writer.unary_operation(
-          result,
-          str(v)+'['+str(self.parse_expression(children[2]))+']'
-        )
-        return result
+        return ArrayItemElement(v, self.parse_expression(children[2]))
       elif children[1]['name'] == '(':
         f = self.parse_postfix_expression(children[0], 'function')
         if len(children) == 4:
