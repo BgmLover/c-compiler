@@ -3,6 +3,7 @@
 
 dist/
 
+/env/
 
 #VSCode
 .vscode/*
@@ -11,6 +12,5 @@ dist/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+.idea/
 
-frontend/tree.h
-frontend/tree.h
