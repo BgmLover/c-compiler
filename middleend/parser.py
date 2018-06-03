@@ -129,12 +129,15 @@ class Parser:
     #function_node=FunctionElement(Name=function_name,Type=function_type,IsDefined=True)
     is_declared=False
     declared_node=FunctionElement()
-
+    #函数名和已有定义函数重复
     if function_name in self.function_pool:
       if self.function_pool[function_name].isDefined :
         ParserError(node,'The function'+function_name+'has been defined before')
       else:
         declared_node=self.function_pool[function_name]
+    #函数名与全局变量名冲突
+    if self.lookup_variable_current_block(function_name):
+      ParserError(node,'The function'+function_name+'has been declared as variable before')
 
     function_block=Block()
     function_block.function_node=FunctionElement(name=function_name, return_type=function_type, is_definition=True)
@@ -180,7 +183,7 @@ class Parser:
       return None
 
     var_type=declaration_specifiers['childern'][0]['content']
-    if var_type=='VOID':
+    if var_type=='void':
       message=r"void can't be declaration specifier"
       ParserError(node,message)
     init_declarator_list=node['children'][1]
@@ -220,7 +223,14 @@ class Parser:
         # 数组
         if declarator['children'][1]['name']=='[':
           pointer_name=declarator['children'][0]['children'][0]['content']
+          assignment_exp=declarator['children'][2]
+          #这里返回一个Temp_element
+          assignment_element=self.parse_assignment_expression(assignment_exp)
+          if assignment_element.type!='int':
+            ParserError(node,r'the size of the array must be integer')
           
+
+
   def parser_compound_statement(self):
     pass#TODO
 
@@ -248,7 +258,7 @@ class Parser:
     type_specifier=node['children'][0]
     declarator=node['children'][1]
     var_type=type_specifier['children'][0]['content']
-    if var_type=='VOID':
+    if var_type=='void':
       message=r"var with type void can't be parameter"
       ParserError(node,message)
 
