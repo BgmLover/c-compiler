@@ -19,18 +19,25 @@ class Parser:
   temp_counter = 0
   label_counter = 0
 
-  def lookup_variable(self, identifier):
-    if isinstance(identifier, IdentifierElement):
-      identifier = identifier.name
+  def lookup_variable(self, identifier,node):
     for block in reversed(self.block_stack):
-      if identifier in block.variable_map:
+      if str(identifier) in block.variable_map:
         return block.variable_map[identifier]
-    return None
+    message="can't find the variable"+str(identifier)+" in all blocks"
+    raise ParserError(node,message)
 
-  def lookup_variable_current_block(self,name):
-    if name in self.block_stack[-1]:
-      return self.block_stack[-1][name]
-    return None
+  def lookup_variable_current_block(self,identifier,node):
+    if str(identifier) in self.block_stack[-1]:
+      return self.block_stack[-1][str(identifier)]
+    message = "can't find the variable" + str(identifier) + " in the current block"
+    raise ParserError(node, message)
+
+  def lookup_function(self,identifier,node):
+    if str(identifier) in self.function_pool:
+      return self.function_pool[str(identifier)]
+    else:
+      message = "can't find the function" + str(identifier) + " in the block_stack"
+      raise ParserError(node,message)
 
   def create_temp(self, type):
     self.temp_counter += 1
