@@ -1,8 +1,7 @@
 from . import logger
 from .logger import Loggable
 from .block import Block
-from .elements import TempElement
-from .elements import FunctionElement
+from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement
 
 
 class ParserError(Exception, Loggable):
@@ -20,13 +19,12 @@ class Parser:
   temp_counter = 0
   label_counter = 0
 
-  def lookup_identifier(self, name):
-    pass #TODO for zq
-
-  def lookup_variable(self, name):
+  def lookup_variable(self, identifier):
+    if isinstance(identifier, IdentifierElement):
+      identifier = identifier.name
     for block in reversed(self.block_stack):
-      if name in block.variable_map:
-        return block.variable_map[name]
+      if identifier in block.variable_map:
+        return block.variable_map[identifier]
     return None
 
   def create_temp(self, type):
@@ -76,7 +74,7 @@ class Parser:
   c_program
     : translation_unit
   """
-  def parse_c_program(self, node):
+  def parse_c_program(self, node:dict):
     children = node['children']
     self.parse_translation_unit(children[0])
 
@@ -85,7 +83,7 @@ class Parser:
     : external_declaration
     | translation_unit external_declaration
   """
-  def parse_translation_unit(self, node):
+  def parse_translation_unit(self, node:dict):
     children = node['children']
     if len(children) == 1:
       self.parse_external_declaration(children[0])
@@ -98,14 +96,14 @@ class Parser:
     : function_definition
     | declaration
   """
-  def parse_external_declaration(self, node):
+  def parse_external_declaration(self, node:dict):
     children = node['children']
     if children[0]['name'] == 'function_definition':
       self.parse_function_definition(children[0])
     else:
       self.parse_declaration(children[0])
 
-  def parse_function_definition(self, node):
+  def parse_function_definition(self, node:dict):
     children=node['children']
     declaration_specifier=children[0]
     declarator=children[1]
@@ -167,7 +165,7 @@ class Parser:
     : declaration_specifiers ';'
     | declaration_specifiers init_declarator_list
   """
-  def parse_declaration(self, node):
+  def parse_declaration(self, node:dict):
     declaration_specifiers=node['children'][0]
     #这种情况形如  int ;  不需要继续解析
     if node['children'][1]['content']==';':
@@ -248,7 +246,7 @@ class Parser:
 	  : assignment_expression
 	  | expression ',' assignment_expression
   """
-  def parse_expression(self, node):
+  def parse_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'assignment_expression':
       return self.parse_assignment_expression(children[0])
@@ -261,7 +259,7 @@ class Parser:
     : logical_or_expression
     | unary_expression assignment_operator assignment_expression
   """
-  def parse_assignment_expression(self, node):
+  def parse_assignment_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'logical_or_expression':
       return self.parse_logical_or_expression(children[0])
@@ -287,7 +285,7 @@ class Parser:
     : logical_and_expression
     | logical_or_expression OR_OP logical_and_expression
   """
-  def parse_logical_or_expression(self, node):
+  def parse_logical_or_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'logical_and_expression':
       self.parse_logical_and_expression(children[0])
@@ -304,7 +302,7 @@ class Parser:
     : inclusive_or_expression
     | logical_and_expression AND_OP inclusive_or_expression
   """
-  def parse_logical_and_expression(self, node):
+  def parse_logical_and_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'inclusive_or_expression':
       return self.parse_inclusive_or_expression(children[0])
@@ -320,7 +318,7 @@ class Parser:
     : exclusive_or_expression
     | inclusive_or_expression '|' exclusive_or_expression
   """
-  def parse_inclusive_or_expression(self, node):
+  def parse_inclusive_or_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'exclusive_or_expression':
       return self.parse_exclusive_or_expression(children[0])
@@ -336,7 +334,7 @@ class Parser:
     : and_expression
     | exclusive_or_expression '^' and_expression
   """
-  def parse_exclusive_or_expression(self, node):
+  def parse_exclusive_or_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'and_expression':
       return self.parse_and_expression(children[0])
@@ -352,7 +350,7 @@ class Parser:
     : equality_expression
     | and_expression '&' equality_expression
   """
-  def parse_and_expression(self, node):
+  def parse_and_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'equality_expression':
       return self.parse_equality_expression(children[0])
@@ -369,7 +367,7 @@ class Parser:
     | equality_expression EQ_OP relational_expression
     | equality_expression NE_OP relational_expression
   """
-  def parse_equality_expression(self, node):
+  def parse_equality_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'relational_expression':
       return self.parse_relational_expression(children[0])
@@ -388,7 +386,7 @@ class Parser:
     | relational_expression LE_OP shift_expression
     | relational_expression GE_OP shift_expression
   """
-  def parse_relational_expression(self, node):
+  def parse_relational_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_shift_expression(children[0])
@@ -405,7 +403,7 @@ class Parser:
     | shift_expression LEFT_OP additive_expression
     | shift_expression RIGHT_OP additive_expression
   """
-  def parse_shift_expression(self, node):
+  def parse_shift_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_additive_expression(children[0])
@@ -422,7 +420,7 @@ class Parser:
     | additive_expression '+' multiplicative_expression
     | additive_expression '-' multiplicative_expression
   """
-  def parse_additive_expression(self, node):
+  def parse_additive_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_multiplicative_expression(children[0])
@@ -440,7 +438,7 @@ class Parser:
     | multiplicative_expression '/' unary_expression
     | multiplicative_expression '%' unary_expression
   """
-  def parse_multiplicative_expression(self, node):
+  def parse_multiplicative_expression(self, node:dict) -> TempElement or ConstantElement:
     children = node['children']
     if len(children) == 1:
       return self.parse_unary_expression(children[0])
@@ -458,12 +456,24 @@ class Parser:
     | DEC_OP unary_expression
     | unary_operator unary_expression
   """
-  def parse_unary_expression(self, node):
+  def parse_unary_expression(self, node:dict, target_type:str='temp') -> TempElement or ConstantElement:
     children = node['children']
     if children[0]['name']:
-      self.parse_postfix_expression(children[0])
+      e = self.parse_postfix_expression(children[0])
+      if isinstance(e, IdentifierElement):
+        if target_type == 'function':
+          return self.lookup_function(e)
+        else:
+          return self.lookup_variable(e)
+      else:
+        return e
     else:
       u = self.parse_unary_expression(children[1])
+      if isinstance(u, IdentifierElement):
+        u = self.lookup_variable(u)
+      if isinstance(u, TempElement):
+        err = ParserError(node, 'Expression should be modifiable.')
+        logger.error(err)
       if children[0]['name'] == '++' or children[0]['name'] == '++':
         self.ir_writer.binomial_operation(
           u,
@@ -479,8 +489,6 @@ class Parser:
         )
       return u
 
-
-
   """
   postfix_expression
     : primary_expression
@@ -490,11 +498,28 @@ class Parser:
     | postfix_expression INC_OP
     | postfix_expression DEC_OP
   """
-  def parse_postfix_expression(self, node):
+  def parse_postfix_expression(self, node:dict) -> TempElement or ConstantElement or IdentifierElement:
     children = node['children']
     if len(children):
       return self.parse_primary_expression(children[0])
     else:
+      e = self.parse_postfix_expression(children[0])
+      if children[1]['name'] == '[':
+        if isinstance(e, IdentifierElement):
+          e = self.lookup_variable(e)
+        result = self.create_temp(e.type)
+        self.ir_writer.unary_operation(
+          result,
+          str(e)+'['+str(self.parse_expression(children[2]))+']'
+        )
+        return result
+      elif children[1]['name'] == '(':
+        pass
+      elif children[1]['name'] == '++':
+        if isinstance(e, IdentifierElement):
+          e = self.lookup_variable(e)
+        result = self.create_temp(e.type)
+
 
   """
   primary_expression:
@@ -504,10 +529,15 @@ class Parser:
     # | STRING_LITERAL
     | '(' expression ')'
   """
-  def parse_primary_expression(self, node):
+  def parse_primary_expression(self, node:dict) -> TempElement or IdentifierElement or ConstantElement:
     children = node['children']
     if children[0]['name'] == 'identifier':
-      return self.lookup_identifier()
+      return IdentifierElement(children[0]['content'])
+    elif children[0]['name'] == 'constant_int':
+      return ConstantElement('int', children[0]['content'])
+    else:
+      return self.parse_expression(children[1])
+
 
 
 

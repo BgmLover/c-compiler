@@ -18,11 +18,19 @@ class IRWriter:
     self.CodeList.append(code)
 
   def binomial_operation(self, dist, src1, operand, src2):
-    code = str(dist)+' := '+str(src1)+' '+operand+' '+str(src2)
-    self.CodeList.append(code)
+    self.assignment(
+      dist,
+      str(src1) + ' ' + operand + ' ' + str(src2)
+    )
 
   def unary_operation(self, dist, operand, src):
-    code = str(dist)+' := '+operand+' '+str(src)
+    self.assignment(
+      dist,
+      operand + ' ' + str(src)
+    )
+
+  def assignment(self, dist, src):
+    code = str(dist) + ' := ' + str(src)
     self.CodeList.append(code)
 
   def create_function(self,function_element):

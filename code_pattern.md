@@ -1,14 +1,15 @@
 ## The pattern of the intermidiate code 
 
+
+
 | Grammer                      | Description                                                  |
 | :--------------------------- | :----------------------------------------------------------- |
 | LABEL n :                    | 声明标签（n=0,1,2,3....）                                    |
-| var1 := var2/1 op var3/1         | 算术/逻辑运算                                                |
-| var1 := 3                   | 常数赋值                                                     |
-| var1 := var2                 | 赋值                                                         |
-| var1 := *var2                | 将以var2值为地址的内存中的值赋值给var1                       |
-| var1 := &var2                | 将变量var2在内存中的地址值赋值给var1                         |
-| *var1 := var2                | 将变量var2的值赋予给以var1的值为地址的内存单元值             |
+| left := right | 赋值语句 |
+|  | right: var binomial_op var \| var \| unary_op var \| *temp \| &temp \| array_element |
+|  | var: temp \| constant |
+|  | left: temp \| array_element \| *temp |
+|  | array_element: temp[var] |
 | GOTO label n                 | 无条件跳转至标签处                                           |
 | IF var1 op var2 GOTO label n | 条件语句                                                     |
 | RETURN var1                  | 函数返回                                                     |
@@ -16,12 +17,6 @@
 | CALL f (var1,var2,var3...)                       | 调用函数并不需要返回值     |
 | var1 = CALL f(var1,var2,var3...)                | 调用函数并将返回值赋给var1                                   |
 | FUNCTION f(var1,var2,var3...)                    | 声明函数f                                                    |
-|                              |                                                              |
-|                              |                                                              |
-|                              |                                                              |
-|                              |                                                              |
-|                              |                                                              |
-|                              |                                                              |
 
 
 

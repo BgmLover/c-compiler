@@ -12,6 +12,28 @@ class TempElement:
     return self.name
 
 
+class ConstantElement:
+  type = None #'int'|...
+  value = None
+
+  def __init__(self, type=None, value=None):
+    self.type = type
+    self.value = value
+
+  def __str__(self):
+    return self.value
+
+
+class IdentifierElement:
+  name = None
+
+  def __init__(self, name=None):
+    self.name = name
+
+  def __str__(self):
+    return self.name
+
+
 class FunctionElement:
   is_defined=False
   name=None
@@ -23,4 +45,7 @@ class FunctionElement:
     self.name=name
     self.type=return_type
     self.arguments=arguments
+
+  def __str__(self):
+    return self.name
 
