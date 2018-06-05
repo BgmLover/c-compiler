@@ -767,7 +767,7 @@ class Parser:
         handle_block_item(nodes[1])
         nodes = nodes[0]['children']
       handle_block_item(nodes[0])
-    elif children[5]['name'] == 'else':
+    elif len(children) == 7:
       else_label = self.create_label()
       finish_label = self.create_label()
       self.ir_writer.if_not_goto(t, else_label)
