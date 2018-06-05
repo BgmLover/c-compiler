@@ -244,11 +244,15 @@ class Parser:
       if declarator['children'][0]['name']=='identifier':
         id=declarator['children'][0]
         var_name=id['content']
-        if self.lookup_variable_current_block(var_name,node) is None:  #在当前作用域查找，这个变量不能重复定义
-          var_element=self.create_temp(var_type)
-          self.block_stack[-1][var_name]=var_element
-        else:
-          logger.error(ParserError(node,r'the IDENTIFIER'+var_name+'has been declared before'))
+        tmp_node=None
+        try:
+          tmp_node= self.lookup_variable_current_block(var_name, node)   # 在当前作用域查找，这个变量不能重复定
+        except ParserError:
+          if tmp_node is None:
+            var_element = self.create_temp(var_type)
+            self.block_stack[-1].variable_map[var_name] = var_element
+          else:
+            logger.error(ParserError(node, r'the IDENTIFIER' + var_name + 'has been declared before'))
       else:
         # 数组(这里还没有考虑int 和 double的问题）
         if declarator['children'][1]['name']=='[':

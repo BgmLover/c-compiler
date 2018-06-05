@@ -1,7 +1,7 @@
 int main(){
-    int j=0;
-    for(j=0;j<5;j++){
-        j=j+1;
+    int j=8;
+    if(j>0){
+    j=j+2;
     }
     return j;
 }
