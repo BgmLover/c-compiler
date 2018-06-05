@@ -139,12 +139,12 @@ class Parser:
     #函数名和已有定义函数重复
     if function_name in self.function_pool:
       if self.function_pool[function_name].isDefined :
-        ParserError(node,'The function'+function_name+'has been defined before')
+        logger.error(ParserError(node,'The function'+function_name+'has been defined before'))
       else:
         declared_node=self.function_pool[function_name]
     #函数名与全局变量名冲突
     if self.lookup_variable_current_block(function_name):
-      ParserError(node,'The function'+function_name+'has been declared as variable before')
+      logger.error(ParserError(node,'The function'+function_name+'has been declared as variable before'))
 
     function_block=Block()
     function_block.function_node=FunctionElement(name=function_name, return_type=function_type, is_definition=True)
@@ -160,12 +160,12 @@ class Parser:
     function_node=self.function_pool[function_name]
     if is_declared:
       if function_node.type !=declared_node.type:
-        ParserError(node,'The types are different between the defined and the declared')
+        logger.error(ParserError(node,'The types are different between the defined and the declared'))
       if function_node.arguments.__len__()!=declared_node.arguments.__len__():
-        ParserError(node,'The number of parameters are different between the defined and the declared')
+        logger.error(ParserError(node,'The number of parameters are different between the defined and the declared'))
       for i in range(function_node.arguments.__len__()):
         if function_node.arguments[i].type!=declared_node.arguments[i].type:
-          ParserError(node, 'The type of parameters are different between the defined and the declared')
+          logger.error(ParserError(node, 'The type of parameters are different between the defined and the declared'))
 
     self.ir_writer.create_function(function_node) #此处输出代码   Function f(var1,var2...)这样形式
 
@@ -192,7 +192,7 @@ class Parser:
     var_type=declaration_specifiers['childern'][0]['content']
     if var_type=='void':
       message=r"void can't be declaration specifier"
-      ParserError(node,message)
+      logger.error(ParserError(node,message))
     init_declarator_list=node['children'][1]
     self.parse_init_declarator_list(var_type,init_declarator_list)
     return None
@@ -225,7 +225,7 @@ class Parser:
           var_element=self.create_temp(var_type)
           self.block_stack[-1][var_name]=var_element
         else:
-          ParserError(node,r'the IDENTIFIER'+var_name+'has been declared before')
+          logger.error(ParserError(node,r'the IDENTIFIER'+var_name+'has been declared before'))
       else:
         # 数组
         if declarator['children'][1]['name']=='[':
@@ -234,9 +234,26 @@ class Parser:
           #这里返回一个Temp_element
           assignment_element=self.parse_assignment_expression(assignment_exp)
           if assignment_element.type!='int':
-            ParserError(node,r'the size of the array must be integer')
-          
-
+            logger.error(ParserError(node,r'the size of the array must be integer'))
+          #TODO
+        # 函数
+        if declarator['children'][1]['name']=='(':
+          function_name=declarator['children'][0]['children'][0]['content']
+          function_type=var_type
+          if self.block_stack.__len__()>1:
+            logger.error(ParserError(node,"Function declaration must be at global environment"))
+          #有参函数
+          if declarator['children'][2]['name']=='parameter_list':
+            parameter_list =declarator['children'][2]
+            function_element=FunctionElement(function_name,var_type)
+            self.function_pool[function_name]=function_element
+            self.parse_parameter_list(parameter_list,function_name)
+    else:
+      if node['children'][1]['name']=='=':
+        if declarator['children'][0]['name']=='IDENTIFIER':
+          identifier=declarator['children'][0]
+          var_name=identifier['name']
+          self.lookup_variable_current_block(identifier)
 
   def parser_compound_statement(self):
     pass#TODO
@@ -267,7 +284,7 @@ class Parser:
     var_type=type_specifier['children'][0]['content']
     if var_type=='void':
       message=r"var with type void can't be parameter"
-      ParserError(node,message)
+      logger.error(ParserError(node,message))
 
     var_name=declarator['children'][0]['content']
     var_node=self.create_temp(var_type)
