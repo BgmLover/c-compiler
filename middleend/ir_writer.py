@@ -29,6 +29,10 @@ class IRWriter:
       operand + ' ' + str(src)
     )
 
+  def malloc_array(self,src):
+    code='MALLOC '+str(src)
+    self.CodeList.append(code)
+
   def assignment(self, dist, src):
     code = str(dist) + ' := ' + str(src)
     self.CodeList.append(code)
