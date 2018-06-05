@@ -66,6 +66,11 @@ class IRWriter:
     code = 'IFNOT '+str(condition)+' GOTO '+label
     self.CodeList.append(code)
 
+  def return_null(self):
+    code='RETURN'
+    self.CodeList.append(code)
 
-
+  def return_value(self,value):
+    code='RETURN '+str(value)
+    self.CodeList.append(code)
 

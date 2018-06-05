@@ -235,7 +235,7 @@ class Parser:
   def parse_init_declarator(self, var_type, node):
     declarator=node['children'][0]
     if node['children'].__len__()==1:
-      if declarator['children'][0]['name']=='IDENTIFIER':
+      if declarator['children'][0]['name']=='identifier':
         id=declarator['children'][0]
         var_name=id['content']
         if self.lookup_variable_current_block(var_name,node) is None:  #在当前作用域查找，这个变量不能重复定义
@@ -270,7 +270,7 @@ class Parser:
     else:
       if node['children'][1]['name']=='=':
         var_element = self.create_temp(var_type)
-        if declarator['children'][0]['name']=='IDENTIFIER':
+        if declarator['children'][0]['name']=='identifier':
           identifier=declarator['children'][0]
           var_name=IdentifierElement(identifier['name'])
           try:
@@ -786,9 +786,179 @@ class Parser:
     | FOR '(' expression_statement expression_statement expression ')' statement
   '''
   def parse_iteration_statement(self,node):
-    pass
+    #while 语句
+    if node['children'][0]['name']=='WHILE':
+      new_block=Block()
+      self.block_stack.append(new_block)
+
+      label1=self.create_label()#while label
+      label2=self.create_label()#statement label
+      label3=self.create_label()#next label
+
+      new_block.break_label=label3
+      new_block.continue_label=label1
+
+      self.add_label_to_current_block(label1, IdentifierElement(label1),node)
+      self.add_label_to_current_block(label2, IdentifierElement(label2), node)
+      self.add_label_to_current_block(label3, IdentifierElement(label3), node)
+      expression=node['children'][2]
+      statement=node['children'][4]
+
+      self.ir_writer.create_label(label1)
+      expression_element=self.parse_expression(expression)
+      self.ir_writer.if_goto(expression_element,label2)
+      self.ir_writer.goto(label3)
+
+      self.ir_writer.create_label(label2)
+      self.parse_statement(statement)
+      self.ir_writer.goto(label1)
+      self.ir_writer.create_label(label3)
+
+      self.block_stack.pop(-1)
+    else:
+      if node['children'][0]['name']=='DO':
+        new_block=Block()
+        self.block_stack.append(new_block)
+        statement=node['children'][1]
+        expression=node['children'][4]
+        label1=self.create_label()
+        label2=self.create_label()
+        self.add_label_to_current_block(label1,IdentifierElement(label1),node)
+        self.add_label_to_current_block(label2,IdentifierElement(label2),node)
+
+        new_block.continue_label=label1
+        new_block.break_label=label2
+        self.ir_writer.create_label(label1)
+        self.parse_statement(statement)
+
+        expression_element=self.parse_expression(expression)
+        self.ir_writer.if_goto(expression_element,label1)
+        self.ir_writer.create_label(label2)
+        self.block_stack.pop(-1)
+      else:
+        if node['children'][0]['name']=='FOR':
+          #FOR '(' expression_statement expression_statement ')' statement
+          if node['children'][4]['name']==')':
+            new_block=Block()
+            self.block_stack.append(new_block)
+            init_statement=node['children'][2]
+            condition=node['children'][3]
+            do_statement=node['children'][5]
+
+            label1 = self.create_label()
+            label2 = self.create_label()
+            label3 = self.create_label()
+            self.add_label_to_current_block(label1, IdentifierElement(label1), node)
+            self.add_label_to_current_block(label2, IdentifierElement(label2), node)
+            self.add_label_to_current_block(label3, IdentifierElement(label3), node)
+
+            new_block.break_label=label3
+            new_block.continue_label=label1
+
+            if init_statement['children'][0]['name']=='expression':
+              self.parse_expression(init_statement)
+
+            self.ir_writer.create_label(label1)
+
+            if condition['children'][0]['name']=='expression':
+              condition_element=self.parse_expression(condition['children'][0])
+              self.ir_writer.if_goto(condition_element,label2)
+            else:
+              self.ir_writer.goto(label2)
+
+            self.ir_writer.goto(label3)
+            self.ir_writer.create_label(label2)
+
+            self.parse_statement(do_statement)
+            self.ir_writer.goto(label1)
+            self.ir_writer.create_label(label3)
+
+            self.block_stack.pop(-1)
+          else:#FOR '(' expression_statement expression_statement expression ')' statement
+            new_block=Block()
+            self.block_stack.append(new_block)
+            init_statement=node['children'][2]
+            condition=node['children'][3]
+            action=node['children'][4]
+            do_statement=node['children'][6]
+
+            label1 = self.create_label()
+            label2 = self.create_label()
+            label3 = self.create_label()
+            self.add_label_to_current_block(label1, IdentifierElement(label1), node)
+            self.add_label_to_current_block(label2, IdentifierElement(label2), node)
+            self.add_label_to_current_block(label3, IdentifierElement(label3), node)
+
+            new_block.break_label=label3
+            new_block.continue_label=label1
+
+            if init_statement['children'][0]['name']=='expression':
+              self.parse_expression(init_statement)
+
+            self.ir_writer.create_label(label1)
+            if condition['children'][0]['name']=='expression':
+              condition_element=self.parse_expression(condition['children'][0])
+              self.ir_writer.if_goto(condition_element,label2)
+            else:
+              self.ir_writer.goto(label2)
+
+            self.ir_writer.goto(label3)
+            self.ir_writer.create_label(label2)
+
+            self.parse_statement(do_statement)
+            self.parse_expression(action)
+
+            self.ir_writer.goto(label1)
+            self.ir_writer.create_label(label3)
+
+            self.block_stack.pop(-1)
+
+  '''
+  jump_statement:
+      GOTO IDENTIFIER ';'
+    | CONTINUE ';'
+    | BREAK ';'
+    | RETURN ';'
+    | RETURN expression ';'
+  '''
   def parse_jump_statement(self,node):
-    pass
+    if node['children'][0]['name']=='goto':
+      identifier_name=node['children'][1]['name']
+      label=self.lookup_label(IdentifierElement(identifier_name),node)
+      self.ir_writer.goto(label)
+    elif node['children'][0]['name']=='continue':
+      label=None
+      for block in reversed(self.block_stack):
+        if block.continue_label is not None:
+          label=block.continue_label
+          self.ir_writer.goto(label)
+          break
+      if label is None:
+        logger.error(ParserError(node,r'can not continue here'))
+
+    elif node['children'][0]['name']=='break':
+      label = None
+      for block in reversed(self.block_stack):
+        if block.break_label is not None:
+          label=block.break_label
+          self.ir_writer.goto(label)
+          break
+      if label is None:
+        logger.error(ParserError(node,r'can not break here'))
+    else:
+      if node['children'][1]==';':
+        self.ir_writer.return_null()
+      else:
+        expression=node['children'][1]
+        expression_element=self.parse_expression(expression)
+        self.ir_writer.return_value(expression_element)
+    
+
+
+
+
+
+
 
 
 
