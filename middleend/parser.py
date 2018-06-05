@@ -24,7 +24,7 @@ class Parser:
   def lookup_variable(self, identifier,node):
     for block in reversed(self.block_stack):
       if str(identifier) in block.variable_map:
-        return block.variable_map[identifier]
+        return block.variable_map[str(identifier)]
     message="can't find the variable"+str(identifier)+" in all blocks"
     raise ParserError(node,message)
 
@@ -33,6 +33,14 @@ class Parser:
       return self.block_stack[-1][str(identifier)]
     message = "can't find the variable" + str(identifier) + " in the current block"
     raise ParserError(node, message)
+
+  def lookup_label(self,identifier,node):
+    for block in reversed(self.block_stack):
+      if str(identifier) in block.label_map:
+        return block.label_map[str(identifier)]
+    message = "can't find the label" + str(identifier) + " in all blocks"
+    raise ParserError(node, message)
+
 
   def lookup_function(self,identifier,node):
     if str(identifier) in self.function_pool:
@@ -236,6 +244,8 @@ class Parser:
           if assignment_element.type!='int':
             logger.error(ParserError(node,r'the size of the array must be integer'))
           #TODO
+
+
         # 函数
         if declarator['children'][1]['name']=='(':
           function_name=declarator['children'][0]['children'][0]['content']
@@ -252,8 +262,20 @@ class Parser:
       if node['children'][1]['name']=='=':
         if declarator['children'][0]['name']=='IDENTIFIER':
           identifier=declarator['children'][0]
-          var_name=identifier['name']
-          self.lookup_variable_current_block(identifier)
+          var_name=IdentifierElement(identifier['name'])
+          var_element=self.create_temp(var_type)
+          try:
+            self.lookup_variable_current_block(var_name,node)
+          except:
+            var_element.name=var_name
+            self.block_stack[-1].variable_map[var_name]=var_element
+          else:
+            logger.error(ParserError(node,"the variable has been declared before"))
+        else:
+          logger.error(ParserError(node, "it's not a variable"))
+      if node['children'][2]['children'][0]['name']=='assignment_expression':
+        assignment_element=self.parse_assignment_expression(node['children'][2]['children'][0])
+
 
   def parser_compound_statement(self):
     pass#TODO
