@@ -26,14 +26,14 @@ class ConstantElement:
 
 class ArrayItemElement:
   array:TempElement = None
-  item:TempElement or ConstantElement = None
+  index: TempElement or ConstantElement = None
 
-  def __init__(self, array:TempElement=None, item:TempElement or ConstantElement=None):
+  def __init__(self, array:TempElement=None, index: TempElement or ConstantElement=None):
     self.array = array
-    self.item = item
+    self.index = index
 
   def __str__(self):
-    return str(self.array)+'['+str(self.item)+']'
+    return str(self.array) +'[' + str(self.index) + ']'
 
 
 
