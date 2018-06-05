@@ -10,7 +10,8 @@ class IRWriter:
   CodeList=[]
 
   def write(self):
-    self.outfile.writelines(self.CodeList)
+    for code in self.CodeList:
+      self.outfile.write(code+'\n')
 
   def __init__(self, path):
     self.outfile = open(path,"w")

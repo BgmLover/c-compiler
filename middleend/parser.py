@@ -287,7 +287,7 @@ class Parser:
             logger.error(ParserError(node,"the variable has been declared before"))
         else:
           logger.error(ParserError(node, "it's not a variable"))
-        if node['children'][2]['children'][0]['name']=='assignment_expression':
+        if node['children'][2]['name']=='assignment_expression':
           assignment_element=self.parse_assignment_expression(node['children'][2]['children'][0])
           self.ir_writer.assignment(temp,assignment_element)
 
@@ -898,7 +898,7 @@ class Parser:
             new_block.continue_label=label1
 
             if init_statement['children'][0]['name']=='expression':
-              self.parse_expression(init_statement)
+              self.parse_expression_statement(init_statement)
 
             self.ir_writer.create_label(label1)
             if condition['children'][0]['name']=='expression':
