@@ -130,15 +130,18 @@ class Parser:
       self.parse_function_definition(children[0])
     else:
       self.parse_declaration(children[0])
-
+  '''
+  function_definition:
+    declaration_specifiers declarator declaration_list compound_statement
+    | declaration_specifiers declarator compound_statement
+  '''
   def parse_function_definition(self, node:dict):
     children=node['children']
     declaration_specifier=children[0]
     declarator=children[1]
-    compound_statement=None
 
     if children[2]['name']=='declaration_list':
-      declaration_list=children[2]
+      declaration_list=children[2]#TODO
       compound_statement=children[3]
     else:
       compound_statement=children[2]
@@ -157,7 +160,7 @@ class Parser:
       else:
         declared_node=self.function_pool[function_name]
     #函数名与全局变量名冲突
-    if self.lookup_variable_current_block(function_name):
+    if self.lookup_variable_current_block(function_name,node):
       logger.error(ParserError(node,'The function'+function_name+'has been declared as variable before'))
 
     function_block=Block()
@@ -235,7 +238,7 @@ class Parser:
       if declarator['children'][0]['name']=='IDENTIFIER':
         id=declarator['children'][0]
         var_name=id['content']
-        if self.lookup_variable_current_block(var_name)==None:  #在当前作用域查找，这个变量不能重复定义
+        if self.lookup_variable_current_block(var_name,node) is None:  #在当前作用域查找，这个变量不能重复定义
           var_element=self.create_temp(var_type)
           self.block_stack[-1][var_name]=var_element
         else:
@@ -272,7 +275,7 @@ class Parser:
           var_name=IdentifierElement(identifier['name'])
           try:
             self.lookup_variable_current_block(var_name,node)
-          except:
+          except ParserError:
             var_element.name=var_name
             self.block_stack[-1].variable_map[var_name]=var_element
           else:
@@ -782,7 +785,8 @@ class Parser:
     | FOR '(' expression_statement expression_statement ')' statement
     | FOR '(' expression_statement expression_statement expression ')' statement
   '''
-  def parse_iteration_statement:
+  def parse_iteration_statement(self,node):
+    pass
 
 
 
