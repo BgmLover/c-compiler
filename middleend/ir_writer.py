@@ -53,7 +53,7 @@ class IRWriter:
     for argument in arguments:
       arguments_str += str(argument) + ','
     arguments_str = arguments_str[:-1]
-    code = 'CALL '+str(function)+' ('+arguments_str+')'
+    code = 'CALL '+str(function)+'('+arguments_str+')'
     if save_to is not None:
       code = str(save_to) + ' := ' + code
     self.CodeList.append(code)
