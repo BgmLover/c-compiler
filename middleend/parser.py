@@ -707,11 +707,12 @@ class Parser:
   labeled_statement
     : IDENTIFIER ':' statement
     | CASE logical_or_expression ':' statement
+    | DEFAULT ':' statement
   """
   def parse_labeled_statement(self, node:dict, case_compare_element=None) -> None:
     children = node['children']
     label = self.create_label()
-    self.ir_writer.create_label(label)
+    finish_label = self.create_label()
     if children[0]['name'] == 'case':
       condition = self.create_temp('int')
       self.ir_writer.binomial_operation(
@@ -721,10 +722,15 @@ class Parser:
         self.parse_logical_or_expression(children[1])
       )
       self.ir_writer.conditional_goto(condition, label)
+      self.ir_writer.goto(finish_label)
+    elif children[0]['name'] == 'default':
+      pass # do nothing
     else:
       self.add_label_to_current_block(label, children[0]['content'], children[0])
-    # TODO default
+    self.ir_writer.create_label(label)
     self.parse_statement(children[-1], case_compare_element)
+    self.ir_writer.create_label(finish_label)
+    
 
 
 
