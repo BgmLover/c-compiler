@@ -1,4 +1,4 @@
-from .elements import TempElement, FunctionElement
+from .elements import TempElement, FunctionElement, ConstantElement
 
 class IRWriter:
   outfile = None
@@ -54,6 +54,13 @@ class IRWriter:
       code = str(save_to) + ' := ' + code
     self.CodeList.append(code)
 
+  def goto(self, label:str):
+    code = 'GOTO '+label
+    self.CodeList.append(code)
+
+  def conditional_goto(self, condition: ConstantElement or TempElement, label:str):
+    code = 'IF '+str(condition)+' GOTO '+label
+    self.CodeList.append(code)
 
 
 

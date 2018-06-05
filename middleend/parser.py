@@ -638,7 +638,7 @@ class Parser:
 
 
   """
-  primary_expression:
+  primary_expression
     : IDENTIFIER
     | CONSTANT_INT
     # | CONSTANT_DOUBLE
@@ -655,7 +655,7 @@ class Parser:
       return self.parse_expression(children[1])
 
   """
-  argument_expression_list:
+  argument_expression_list
     : assignment_expression
     | argument_expression_list ',' assignment_expression
   """
@@ -667,6 +667,94 @@ class Parser:
       arguments = self.parse_argument_expression_list(children[0])
       arguments.append(self.parse_assignment_expression(children[2]))
       return arguments
+
+  """
+  statement
+    : compound_statement
+    | labeled_statement
+    | expression_statement
+    | selection_statement
+    | iteration_statement
+    | jump_statement
+  """
+  def parse_statement(self, node:dict, case_compare_element=None):
+    child = node['children'][0]
+    child_name = child['name']
+    if child_name == 'compound_statement':
+      self.parse_compound_statement(child)
+    elif child_name == 'labeled_statement':
+      self.parse_labeled_statement(child, case_compare_element)
+    elif child_name == 'expression_statement':
+      self.parse_expression_statement(child)
+    elif child_name == 'selection_statement':
+      self.parse_selection_statement(child)
+    elif child_name == 'iteration_statement':
+      self.parse_iteration_statement(child)
+    else:
+      self.parse_jump_statement(child)
+
+  """
+  expression_statement
+    : ';'
+    | expression ';'
+  """
+  def parse_expression_statement(self, node:dict) -> None:
+    children = node['children']
+    if len(children) == 2:
+      self.parse_expression(children[0])
+
+  """
+  labeled_statement
+    : IDENTIFIER ':' statement
+    | CASE logical_or_expression ':' statement
+  """
+  def parse_labeled_statement(self, node:dict, case_compare_element=None) -> None:
+    children = node['children']
+    label = self.create_label()
+    self.ir_writer.create_label(label)
+    if children[0]['name'] == 'case':
+      condition = self.create_temp('int')
+      self.ir_writer.binomial_operation(
+        condition,
+        case_compare_element,
+        '==',
+        self.parse_logical_or_expression(children[1])
+      )
+      self.ir_writer.conditional_goto(condition, label)
+    else:
+      self.add_label_to_current_block(label, children[0]['content'], children[0])
+    # TODO default
+    self.parse_statement(children[-1], case_compare_element)
+
+
+
+  """
+  selection_statement
+    : IF '(' expression ')' statement ELSE statement
+    | IF '(' expression ')' statement %prec LOWER_THAN_ELSE
+    | SWITCH '(' expression ')' statement
+  """
+  def parse_selection_statement(self, node:dict):
+    children = node['children']
+    if children[0]['name'] == 'switch':
+      t = self.parse_expression(children[2])
+      nodes = children[4]['children']
+      if nodes[0]['name'] != 'compound_statement':
+        raise ParserError(node[0], 'Compound statement needed.')
+      nodes = children[0]['children']
+      if len(nodes) == 2:
+        return
+      nodes = children[1]['children']
+      def handle_block_item(n:dict):
+        if n['name'] != 'statement':
+          raise ParserError(n, 'Switch block can only contain statements.')
+        self.parse_statement(n, t)
+      while len(nodes) == 2:
+        handle_block_item(nodes[1])
+        nodes = nodes[0]['children']
+      handle_block_item(nodes[0])
+
+
 
 
 
