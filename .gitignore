@@ -14,3 +14,4 @@ dist/
 
 .idea/
 
+__pycache__/
