@@ -24,7 +24,7 @@ class Parser:
   label_counter = 0
 
   def add_label_to_current_block(self,label,identifier,node):
-    if str(identifier) in self.block_stack[-1]:
+    if str(identifier) in self.block_stack[-1].label_map:
       message='the label has been declared'
       raise ParserError(node,message)
     self.block_stack[-1].label_map[str(identifier)]=label
@@ -370,7 +370,7 @@ class Parser:
       return self.parse_assignment_expression(children[0])
     else:
       self.parse_expression(children[0])
-      return self.parse_assignment_expression(children[1])
+      return self.parse_assignment_expression(children[2])
 
   """
   assignment_expression
@@ -841,7 +841,7 @@ class Parser:
         self.ir_writer.create_label(label2)
         self.block_stack.pop(-1)
       else:
-        if node['children'][0]['name']=='FOR':
+        if node['children'][0]['name']=='for':
           #FOR '(' expression_statement expression_statement ')' statement
           if node['children'][4]['name']==')':
             new_block=Block()
