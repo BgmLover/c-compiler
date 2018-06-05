@@ -1,7 +1,15 @@
-Function a(temp1,)
-temp2 := temp1 + 1
-RETURN temp2
+Function fact(temp1)
+temp2 := temp1 == 1
+IFNOT temp2 GOTO label1
+RETURN temp1
+GOTO label2
+LABEL label1:
+temp3 := temp1 - 1
+temp4 := CALL fact(temp3)
+temp5 := temp1 * temp4
+RETURN temp5
+LABEL label2:
 Function main()
-temp4 := CALL a (3)
-temp3 := None
-RETURN temp3
+temp7 := CALL fact(4)
+temp6 := temp7
+RETURN temp6

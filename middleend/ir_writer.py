@@ -43,9 +43,11 @@ class IRWriter:
 
   def create_function(self,function_element):
     code='Function '+function_element.name+'('
+    param_list=''
     for param in function_element.arguments:
-      code+=param.name+','
-    code+=')'
+      param_list += str(param) + ','
+    param_list=param_list[:-1]
+    code=code+param_list+')'
     self.CodeList.append(code)
 
   def call_function(self, function:FunctionElement, arguments, save_to:TempElement=None):

@@ -1,9 +1,13 @@
-int a(int i){
-return i+1;
+int fact(int i){
+    if(i==1){
+        return i;
+    }
+    else
+        return i*fact(i-1);
 }
 int main(){
     int j;
-    j=a(3);
+    j=fact(4);
     return j;
 }
 
