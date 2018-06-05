@@ -210,7 +210,10 @@ labeled_statement:
     }
     | CASE logical_or_expression ':' statement{
       $$=new TreeNode("labeled_statement",4,$1,$2,$3,$4);    
-    };
+    }
+    | DEFAULT ':' statement{
+      $$=new TreeNode("labeled_statement",3,$1,$2,$3);
+    }
 
 expression_statement:
       ';'{

@@ -26,7 +26,7 @@ class Parser:
       message='the label has been declared'
       raise ParserError(node,message)
     self.block_stack[-1].label_map[str(identifier)]=label
-  
+
   def lookup_variable(self, identifier,node):
     for block in reversed(self.block_stack):
       if str(identifier) in block.variable_map:
@@ -183,7 +183,7 @@ class Parser:
 
     self.ir_writer.create_function(function_node) #此处输出代码   Function f(var1,var2...)这样形式
 
-    self.parser_compound_statement(compound_statement)
+    self.parse_compound_statement(compound_statement)
 
     self.block_stack.pop(-1)
 
@@ -288,10 +288,33 @@ class Parser:
      '{' '}'
     | '{' block_item_list '}'
   '''
-  def parser_compound_statement(self,node):
+  def parse_compound_statement(self,node):
     if node['children'][1]['name']=='block_item_list':
       block_item_list=node['children'][1]
+      self.parse_block_item_list(block_item_list)
 
+  '''
+  block_item_list:
+      block_item
+    | block_item_list block_item
+  '''
+  def parse_block_item_list(self,node):
+    if node['children'][0]['name']=='block_item_list':
+      self.parse_block_item_list(node)
+      self.parse_block_item(node)
+    else:
+      self.parse_block_item(node)
+
+  '''
+  block_item:
+      declaration
+    | statement
+  '''
+  def parse_block_item(self,node):
+    if node['children'][0]['name']=='declaration':
+      self.parse_statement(node)
+    else:
+      self.parse_declaration(node)
 
   """
   parameter_list
@@ -647,7 +670,14 @@ class Parser:
 
 
 
-
+  '''
+  iteration_statement:
+      WHILE '(' expression ')' statement
+    | DO statement WHILE '(' expression ')' ';'
+    | FOR '(' expression_statement expression_statement ')' statement
+    | FOR '(' expression_statement expression_statement expression ')' statement
+  '''
+  def parse_iteration_statement:
 
 
 
