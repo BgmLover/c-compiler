@@ -206,7 +206,7 @@ class Parser:
     if node['children'][1]['content']==';':
       return None
 
-    var_type=declaration_specifiers['childern'][0]['content']
+    var_type=declaration_specifiers['children'][0]['content']
     if var_type=='void':
       message=r"void can't be declaration specifier"
       logger.error(ParserError(node,message))
