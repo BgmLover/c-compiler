@@ -711,9 +711,8 @@ class Parser:
   """
   def parse_labeled_statement(self, node:dict, case_compare_element=None) -> None:
     children = node['children']
-    label = self.create_label()
-    finish_label = self.create_label()
     if children[0]['name'] == 'case':
+      finish_label = self.create_label()
       condition = self.create_temp('int')
       self.ir_writer.binomial_operation(
         condition,
@@ -721,17 +720,14 @@ class Parser:
         '==',
         self.parse_logical_or_expression(children[1])
       )
-      self.ir_writer.conditional_goto(condition, label)
-      self.ir_writer.goto(finish_label)
+      self.ir_writer.if_not_goto(condition, finish_label)
+      self.parse_statement(children[-1], case_compare_element)
+      self.ir_writer.create_label(finish_label)
     elif children[0]['name'] == 'default':
       pass # do nothing
     else:
+      label = self.create_label()
       self.add_label_to_current_block(label, children[0]['content'], children[0])
-    self.ir_writer.create_label(label)
-    self.parse_statement(children[-1], case_compare_element)
-    self.ir_writer.create_label(finish_label)
-    
-
 
 
   """
@@ -742,8 +738,8 @@ class Parser:
   """
   def parse_selection_statement(self, node:dict):
     children = node['children']
+    t = self.parse_expression(children[2])
     if children[0]['name'] == 'switch':
-      t = self.parse_expression(children[2])
       nodes = children[4]['children']
       if nodes[0]['name'] != 'compound_statement':
         raise ParserError(node[0], 'Compound statement needed.')
@@ -759,6 +755,21 @@ class Parser:
         handle_block_item(nodes[1])
         nodes = nodes[0]['children']
       handle_block_item(nodes[0])
+    elif children[5]['name'] == 'else':
+      else_label = self.create_label()
+      finish_label = self.create_label()
+      self.ir_writer.if_not_goto(t, else_label)
+      self.parse_statement(children[4])
+      self.ir_writer.goto(finish_label)
+      self.ir_writer.create_label(else_label)
+      self.parse_statement(children[6])
+      self.ir_writer.create_label(finish_label)
+    else:
+      finish_label = self.create_label()
+      self.ir_writer.if_not_goto(t, finish_label)
+      self.parse_statement(children[4])
+      self.ir_writer.create_label(finish_label)
+      
 
 
 

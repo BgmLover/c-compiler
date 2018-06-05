@@ -58,8 +58,12 @@ class IRWriter:
     code = 'GOTO '+label
     self.CodeList.append(code)
 
-  def conditional_goto(self, condition: ConstantElement or TempElement, label:str):
+  def if_goto(self, condition: ConstantElement or TempElement, label:str):
     code = 'IF '+str(condition)+' GOTO '+label
+    self.CodeList.append(code)
+
+  def if_not_goto(self, condition: ConstantElement or TempElement, label:str):
+    code = 'IFNOT '+str(condition)+' GOTO '+label
     self.CodeList.append(code)
 
 
