@@ -787,6 +787,8 @@ class Parser:
   '''
   def parse_iteration_statement(self,node):
     pass
+  def parse_jump_statement(self,node):
+    pass
 
 
 
