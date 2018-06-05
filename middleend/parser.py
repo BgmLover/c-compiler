@@ -33,13 +33,13 @@ class Parser:
     for block in reversed(self.block_stack):
       if str(identifier) in block.variable_map:
         return block.variable_map[str(identifier)]
-    message="can't find the variable"+str(identifier)+" in all blocks"
+    message="can't find the variable "+str(identifier)+" in all blocks"
     raise ParserError(node,message)
 
   def lookup_variable_current_block(self,identifier,node):
     if str(identifier) in self.block_stack[-1].variable_map:
       return self.block_stack[-1][str(identifier)]
-    message = "can't find the variable" + str(identifier) + " in the current block"
+    message = "can't find the variable " + str(identifier) + " in the current block"
     raise ParserError(node, message)
 
   def lookup_label(self,identifier,node):
@@ -212,7 +212,7 @@ class Parser:
     if node['children'][1]['content']==';':
       return None
 
-    var_type=declaration_specifiers['children'][0]['content']
+    var_type=declaration_specifiers['children'][0]['children'][0]['name']
     if var_type=='void':
       message=r"void can't be declaration specifier"
       logger.error(ParserError(node,message))
@@ -257,15 +257,17 @@ class Parser:
         # 数组(这里还没有考虑int 和 double的问题）
         if declarator['children'][1]['name']=='[':
           #pointer_name=declarator['children'][0]['children'][0]['content']
+          var_name=declarator['children'][0]['children'][0]['content']
           var_element=self.create_temp(var_type)
-          self.block_stack[-1].variable_map[var_element.name]=var_element
+          var_element.is_pointer=True
+          self.block_stack[-1].variable_map[var_name]=var_element
           assignment_exp=declarator['children'][2]
           #这里返回一个Temp_element
           assignment_element=self.parse_assignment_expression(assignment_exp)
           if assignment_element.type!='int':
             logger.error(ParserError(node,r'the size of the array must be integer'))
-            array_item_element=ArrayItemElement(var_element,assignment_element)
-            self.ir_writer.malloc_array(array_item_element)
+          array_item_element=ArrayItemElement(var_element,assignment_element)
+          self.ir_writer.malloc_array(array_item_element)
         # 函数
         if declarator['children'][1]['name']=='(':
           function_name=declarator['children'][0]['children'][0]['content']
