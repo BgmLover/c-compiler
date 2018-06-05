@@ -1,1 +1,15 @@
-Function main()RETURN None
+Function main()
+temp1 := 0
+temp1 := 0
+LABEL label1:
+temp2 := temp1 < 5
+IF temp2 GOTO label2
+GOTO label3
+LABEL label2:
+temp3 := temp1 + 1
+temp1 := temp3
+temp4 := temp1
+temp1 := temp1 + 1
+GOTO label1
+LABEL label3:
+RETURN temp1

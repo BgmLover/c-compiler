@@ -518,7 +518,9 @@ init_declarator:
     };
 
 initializer:
-      assignment_expression{}
+      assignment_expression{
+      $$=new TreeNode("initializer",1,$1);
+      }
     | '{' initializer_list '}' {
       $$=new TreeNode("initializer",3,$1,$2,$3);                                                                                                 
     }

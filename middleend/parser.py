@@ -287,7 +287,7 @@ class Parser:
             logger.error(ParserError(node,"the variable has been declared before"))
         else:
           logger.error(ParserError(node, "it's not a variable"))
-        if node['children'][2]['name']=='assignment_expression':
+        if node['children'][2]['children'][0]['name']=='assignment_expression':
           assignment_element=self.parse_assignment_expression(node['children'][2]['children'][0])
           self.ir_writer.assignment(temp,assignment_element)
 
@@ -384,7 +384,7 @@ class Parser:
     else:
       left = self.parse_unary_expression(children[0])
       right = self.parse_assignment_expression(children[2])
-      if children[1]['name'] == '=':
+      if children[1]['children'][0]['name'] == '=':
         self.ir_writer.assignment(
           left,
           right
@@ -393,7 +393,7 @@ class Parser:
         self.ir_writer.binomial_operation(
           left,
           left,
-          children[1]['name'][:-1],
+          children[1]['children'][0]['name'][:1],
           right
         )
       return left
@@ -406,7 +406,7 @@ class Parser:
   def parse_logical_or_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
     children = node['children']
     if children[0]['name'] == 'logical_and_expression':
-      self.parse_logical_and_expression(children[0])
+      return self.parse_logical_and_expression(children[0])
     else:
       return self.do_binomial_operation(
         self.parse_logical_or_expression(children[0]),
