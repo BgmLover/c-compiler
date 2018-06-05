@@ -637,6 +637,7 @@ class Parser:
         else:
           t = self.create_temp(f.return_type)
           self.ir_writer.call_function(f, arguments, t)
+          return t
 
       else: # ++ and --
         v = self.parse_postfix_expression(children[0])
