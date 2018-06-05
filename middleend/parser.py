@@ -632,7 +632,12 @@ class Parser:
           arguments = self.parse_argument_expression_list(children[2])
         else:
           arguments = []
-        self.ir_writer.call_function(f, arguments)
+        if f.return_type == 'void':
+          self.ir_writer.call_function(f, arguments)
+        else:
+          t = self.create_temp(f.return_type)
+          self.ir_writer.call_function(f, arguments, t)
+
       else: # ++ and --
         v = self.parse_postfix_expression(children[0])
         result = self.create_temp(v.type)
