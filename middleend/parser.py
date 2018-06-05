@@ -21,6 +21,12 @@ class Parser:
   temp_counter = 0
   label_counter = 0
 
+  def add_label_to_current_block(self,label,identifier,node):
+    if str(identifier) in self.block_stack[-1]:
+      message='the label has been declared'
+      raise ParserError(node,message)
+    self.block_stack[-1].label_map[str(identifier)]=label
+  
   def lookup_variable(self, identifier,node):
     for block in reversed(self.block_stack):
       if str(identifier) in block.variable_map:
@@ -177,7 +183,7 @@ class Parser:
 
     self.ir_writer.create_function(function_node) #此处输出代码   Function f(var1,var2...)这样形式
 
-    self.parser_compound_statement()
+    self.parser_compound_statement(compound_statement)
 
     self.block_stack.pop(-1)
 
@@ -235,21 +241,21 @@ class Parser:
         else:
           logger.error(ParserError(node,r'the IDENTIFIER'+var_name+'has been declared before'))
       else:
-        # 数组
+        # 数组(这里还没有考虑int 和 double的问题）
         if declarator['children'][1]['name']=='[':
-          pointer_name=declarator['children'][0]['children'][0]['content']
+          #pointer_name=declarator['children'][0]['children'][0]['content']
+          var_element=self.create_temp(var_type)
+          self.block_stack[-1].variable_map[var_element.name]=var_element
           assignment_exp=declarator['children'][2]
           #这里返回一个Temp_element
           assignment_element=self.parse_assignment_expression(assignment_exp)
           if assignment_element.type!='int':
             logger.error(ParserError(node,r'the size of the array must be integer'))
-          #TODO
-
-
+            array_item_element=ArrayItemElement(var_element,assignment_element)
+            self.ir_writer.malloc_array(array_item_element)
         # 函数
         if declarator['children'][1]['name']=='(':
           function_name=declarator['children'][0]['children'][0]['content']
-          function_type=var_type
           if self.block_stack.__len__()>1:
             logger.error(ParserError(node,"Function declaration must be at global environment"))
           #有参函数
@@ -260,10 +266,10 @@ class Parser:
             self.parse_parameter_list(parameter_list,function_name)
     else:
       if node['children'][1]['name']=='=':
+        var_element = self.create_temp(var_type)
         if declarator['children'][0]['name']=='IDENTIFIER':
           identifier=declarator['children'][0]
           var_name=IdentifierElement(identifier['name'])
-          var_element=self.create_temp(var_type)
           try:
             self.lookup_variable_current_block(var_name,node)
           except:
@@ -273,12 +279,19 @@ class Parser:
             logger.error(ParserError(node,"the variable has been declared before"))
         else:
           logger.error(ParserError(node, "it's not a variable"))
-      if node['children'][2]['children'][0]['name']=='assignment_expression':
-        assignment_element=self.parse_assignment_expression(node['children'][2]['children'][0])
+        if node['children'][2]['children'][0]['name']=='assignment_expression':
+          assignment_element=self.parse_assignment_expression(node['children'][2]['children'][0])
+          self.ir_writer.assignment(var_element,assignment_element)
 
+  '''
+  compound_statement:
+     '{' '}'
+    | '{' block_item_list '}'
+  '''
+  def parser_compound_statement(self,node):
+    if node['children'][1]['name']=='block_item_list':
+      block_item_list=node['children'][1]
 
-  def parser_compound_statement(self):
-    pass#TODO
 
   """
   parameter_list
