@@ -1,4 +1,4 @@
-from .elements import TempElement, FunctionElement, ConstantElement
+from middleend.elements import TempElement, FunctionElement, ConstantElement
 
 class IRWriter:
   outfile = None
@@ -9,8 +9,11 @@ class IRWriter:
 
   CodeList=[]
 
+  def write(self):
+    self.outfile.writelines(self.CodeList)
+
   def __init__(self, path):
-    self.outfile = open(path)
+    self.outfile = open(path,"w")
 
   def create_label(self, label):
     #self.outfile.write('LABEL %s:\n'%label)
@@ -39,7 +42,7 @@ class IRWriter:
 
   def create_function(self,function_element):
     code='Function '+function_element.name+'('
-    for param in function_element.argument:
+    for param in function_element.arguments:
       code+=param.name+','
     code+=')'
     self.CodeList.append(code)

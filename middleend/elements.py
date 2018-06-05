@@ -57,8 +57,10 @@ class FunctionElement:
     self.is_defined=is_definition
     self.name=name
     self.type=return_type
-    self.arguments=arguments
-
+    if arguments is not None:
+      self.arguments=arguments
+    else:
+      self.arguments=[]
   def __str__(self):
     return self.name
 

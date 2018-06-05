@@ -3,7 +3,9 @@ from .logger import Loggable
 from .block import Block
 from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement, ArrayItemElement
 from typing import List
+import sys
 
+sys.setrecursionlimit(1000000)
 
 
 class ParserError(Exception, Loggable):
@@ -35,7 +37,7 @@ class Parser:
     raise ParserError(node,message)
 
   def lookup_variable_current_block(self,identifier,node):
-    if str(identifier) in self.block_stack[-1]:
+    if str(identifier) in self.block_stack[-1].variable_map:
       return self.block_stack[-1][str(identifier)]
     message = "can't find the variable" + str(identifier) + " in the current block"
     raise ParserError(node, message)
@@ -84,7 +86,7 @@ class Parser:
   def parse(self):
     #预定义两个已有函数
     print_node=FunctionElement("print", "void", True)
-    param_node=TempElement(type="int")
+    param_node=TempElement(name='print_value',type="int")
     print_node.arguments.append(param_node)
 
     read_node=FunctionElement("read", "int", True)
@@ -160,8 +162,12 @@ class Parser:
       else:
         declared_node=self.function_pool[function_name]
     #函数名与全局变量名冲突
-    if self.lookup_variable_current_block(function_name,node):
-      logger.error(ParserError(node,'The function'+function_name+'has been declared as variable before'))
+    try:
+      if self.lookup_variable_current_block(function_name,node) is not None:
+        logger.error(ParserError(node, 'The function' + function_name + 'has been declared as variable before'))
+    except ParserError:
+      pass
+
 
     function_block=Block()
     function_block.function_node=FunctionElement(name=function_name, return_type=function_type, is_definition=True)
@@ -269,22 +275,21 @@ class Parser:
             self.parse_parameter_list(parameter_list,function_name)
     else:
       if node['children'][1]['name']=='=':
-        var_element = self.create_temp(var_type)
+        temp = self.create_temp(var_type)
         if declarator['children'][0]['name']=='identifier':
-          identifier=declarator['children'][0]
-          var_name=IdentifierElement(identifier['name'])
+          identifier_node=declarator['children'][0]
+          identifier=IdentifierElement(identifier_node['content'])
           try:
-            self.lookup_variable_current_block(var_name,node)
+            self.lookup_variable_current_block(identifier,node)
           except ParserError:
-            var_element.name=var_name
-            self.block_stack[-1].variable_map[var_name]=var_element
+            self.block_stack[-1].variable_map[identifier.name]=temp
           else:
             logger.error(ParserError(node,"the variable has been declared before"))
         else:
           logger.error(ParserError(node, "it's not a variable"))
         if node['children'][2]['children'][0]['name']=='assignment_expression':
           assignment_element=self.parse_assignment_expression(node['children'][2]['children'][0])
-          self.ir_writer.assignment(var_element,assignment_element)
+          self.ir_writer.assignment(temp,assignment_element)
 
   '''
   compound_statement:
@@ -303,10 +308,10 @@ class Parser:
   '''
   def parse_block_item_list(self,node):
     if node['children'][0]['name']=='block_item_list':
-      self.parse_block_item_list(node)
-      self.parse_block_item(node)
+      self.parse_block_item_list(node['children'][0])
+      self.parse_block_item(node['children'][1])
     else:
-      self.parse_block_item(node)
+      self.parse_block_item(node['children'][0])
 
   '''
   block_item:
@@ -314,10 +319,10 @@ class Parser:
     | statement
   '''
   def parse_block_item(self,node):
-    if node['children'][0]['name']=='declaration':
-      self.parse_statement(node)
+    if node['children'][0]['name']=='statement':
+      self.parse_statement(node['children'][0])
     else:
-      self.parse_declaration(node)
+      self.parse_declaration(node['children'][0])
 
   """
   parameter_list
@@ -604,7 +609,7 @@ class Parser:
   """
   def parse_postfix_expression(self, node:dict, target_type:str='temp') -> TempElement or ConstantElement or ArrayItemElement or FunctionElement:
     children = node['children']
-    if len(children) == 0:
+    if len(children) == 1:
       e = self.parse_primary_expression(children[0])
       if isinstance(e, IdentifierElement):
         if target_type == 'function':
@@ -952,7 +957,7 @@ class Parser:
         expression=node['children'][1]
         expression_element=self.parse_expression(expression)
         self.ir_writer.return_value(expression_element)
-    
+
 
 
 
