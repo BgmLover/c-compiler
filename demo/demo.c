@@ -1,7 +1,9 @@
+int a(int i){
+return i+1;
+}
 int main(){
-    int j=8;
-    if(j>0){
-    j=j+2;
-    }
+    int j;
+    j=a(3);
     return j;
 }
+

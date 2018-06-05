@@ -1,0 +1,7 @@
+Function a(temp1,)
+temp2 := temp1 + 1
+RETURN temp2
+Function main()
+CALL a (3)
+temp3 := None
+RETURN temp3

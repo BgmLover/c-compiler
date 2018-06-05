@@ -796,7 +796,7 @@ class Parser:
   '''
   def parse_iteration_statement(self,node):
     #while 语句
-    if node['children'][0]['name']=='WHILE':
+    if node['children'][0]['name']=='while':
       new_block=Block()
       self.block_stack.append(new_block)
 
@@ -825,7 +825,7 @@ class Parser:
 
       self.block_stack.pop(-1)
     else:
-      if node['children'][0]['name']=='DO':
+      if node['children'][0]['name']=='do':
         new_block=Block()
         self.block_stack.append(new_block)
         statement=node['children'][1]
