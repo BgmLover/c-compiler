@@ -35,7 +35,7 @@ extern YYSTYPE yylval;
  /*"_Complex"        { count_col(); return(COMPLEX); }*/
  /*"const"           {yylval.node = new TreeNode("const"); count_col(); return(CONST); }*/
 "continue"        {yylval.node = new TreeNode("continue"); count_col(); return(CONTINUE); }
- /*"default"         {yylval.node = new TreeNode("default"); count_col(); return(DEFAULT); }*/
+ "default"         {yylval.node = new TreeNode("default"); count_col(); return(DEFAULT); }
 "do"              {yylval.node = new TreeNode("do"); count_col(); return(DO); }
 "double"          {yylval.node = new TreeNode("double"); count_col(); return(DOUBLE); }
 "else"            {yylval.node = new TreeNode("else"); count_col(); return(ELSE); }
