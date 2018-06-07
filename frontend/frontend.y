@@ -446,7 +446,10 @@ unary_operator:
     }
     | '!'{
       $$=new TreeNode("unary_operator",1,$1);                                                  
-    };
+    }
+    | '*'{
+      $$=new TreeNode("unary_operator",1,$1);
+    }
 
 postfix_expression:
       primary_expression{//基本表达式
