@@ -43,7 +43,7 @@ def Get_R(string):
                 table[string]=reg #将可用寄存器分配给该变量，映射关系存到table中
                 reg_ok[reg]=0     #寄存器reg设置为已用
                 return '$'+reg
-                
+
 #翻译成汇编
 def translate(line):
     if line[0]=='LABEL': #LABEL n: -> n:
@@ -76,7 +76,8 @@ def translate(line):
                     return '\tor %s,$zero,%s'%(Get_R(line[0]),line[-1])
                   else:
                     return '\tor %s,$zero,%s'%(Get_R(line[0]),Get_R(line[-1]))
-        if len(line)==5: #目前不能解决的操作 >= <= == >> << mul立即数等 因为需要临时变量寄存器
+                
+        if len(line)==5: #目前不能解决的操作 >= <= ==  mul立即数等 因为需要临时变量寄存器
             if line[3]=='+':
               if line[-1][0]>='0' and line[-1][0]<='9':
                 return '\taddi %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
@@ -91,17 +92,59 @@ def translate(line):
                 return '\tmul %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
             if line[3]=='/':
                 return '\tdiv %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
+            if line[3]=='^':
+              if line[-1][0]>='0' and line[-1][0]<='9':
+                return '\txori %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
+              else:
+                return '\txor %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
             if line[3]=='<':
                 return '\tslt %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
             if line[3]=='>':
                 return '\tslt %s,%s,%s'%(Get_R(line[0]),Get_R(line[-1]),line[2])
             if line[3]=='&&':
+              if line[-1][0]>='0' and line[-1][0]<='9':
+                return '\tandi %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
+              else:
                 return '\tand %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
             if line[3]=='||':
+              if line[-1][0]>='0' and line[-1][0]<='9':
+                return '\tori %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
+              else:
                 return '\tor %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
-            if line[3]=='!=':
+            if line[3]=='!=':#不对 这里写错了
+              if line[-1][0]>='0' and line[-1][0]<='9':
+                return '\txori %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
+              else:
                 return '\txor %s,%s,%s'%(Get_R(line[0]),Get_R(line[2]),line[-1])
+            if line[3]=='<<': 
+                  if line[-1][0]>='0' and line[-1][0]<='9':
+                    return '\tsll %s,$s,%s'%(Get_R(line[0]),Get_(line[2]),line[-1])
+                  else:
+                    return '\tsllv %s,$s,%s'%(Get_R(line[0]),Get_(line[2]),line[-1])
+            if line[3]=='>>': 
+                  if line[-1][0]>='0' and line[-1][0]<='9':
+                    return '\tsrl %s,$s,%s'%(Get_R(line[0]),Get_(line[2]),line[-1])
+                  else:
+                    return '\tsrlv %s,$s,%s'%(Get_R(line[0]),Get_(line[2]),line[-1])
       #这里竟然还有千奇百怪的赋值运算符qaq 
+    if line[1]=='+=':
+      if line[-1][0]>='0' and line[-1][0]<='9':
+          return '\taddi %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),line[-1])
+      else:
+          return '\tadd %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),Get_R(line[-1]))
+    if line[1]=='-=':
+      if line[-1][0]>='0' and line[-1][0]<='9':
+          return '\taddi %s,$s,-%s'%(Get_R(line[0]),Get_R(line[0]),line[-1])
+      else:
+          return '\tsub %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),Get_R(line[-1]))
+    if line[1]=='*=':
+          return '\tmul %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),line[-1])
+    if line[1]=='/=':
+          return '\tmul %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),line[-1])
+    if line[1]=='&=':
+          return '\tand %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),line[-1])
+    if line[1]=='|=':
+          return '\tor %s,$s,%s'%(Get_R(line[0]),Get_R(line[0]),line[-1])
     if line[0]=='GOTO': #GOTO label1
         return '\tj %s'%line[1]
     if line[0]=='IF': #IF var GOTO label1
