@@ -7,7 +7,7 @@
 | LABEL n :                    | 声明标签（n=0,1,2,3....）                                    |
 | left := right | 赋值语句 |
 |  | right: var binomial_op var \| var \| unary_op var \| *temp \| &temp \| array_element \| CALL f(var1,var2,var3...) |
-|  | var: temp \| constant |
+|  | var: temp \| co$nstant |
 |  | left: temp \| array_element \| *temp |
 |  | array_item: temp[var] |
 |  | temp必须只含有小写英文字母、数字、下划线，且首字符是字母 |
