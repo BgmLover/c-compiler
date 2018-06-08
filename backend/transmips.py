@@ -13,7 +13,7 @@ class Translator:
   def __init__(self,file_name,path):
     self.code_lines=self.Load_Inter(file_name)
     self.mips_writer=MIPSWriter(path)
-    regs=Regs(self.code_lines,self.mips_writer)
+    self.regs=Regs(self.code_lines,self.mips_writer)
     self.line_no=-1
 
   def Load_Inter(self,filename):
@@ -59,16 +59,16 @@ class Translator:
 
   #翻译成汇编
   def translate(self):
-    line_no=0
+    self.line_no=0
     for line in self.code_lines:
       if line[0]=='LABEL': #LABEL n: -> n:
         self.mips_writer.write_label(line[1])
       if line[1]==':=': #left := right ->
         if len(line)==3:# vat *temp &temp array_element
           if line[-1][0]>='0' and line[-1][0]<='9':
-            self.mips_writer.li(self.regs.get_normal_reg(line[0],line_no),line[-1])
+            self.mips_writer.li(self.regs.get_normal_reg(line[0],self.line_no),line[-1])
           else:
-            self.mips_writer.li(self.regs.get_normal_reg(line[0], line_no), line[2])
+            self.mips_writer.li(self.regs.get_normal_reg(line[0],self.line_no), line[2])
         if len(line)==4:
           if line[2]=='CALL':
             temp_str = line[3].split('(')
@@ -79,97 +79,122 @@ class Translator:
           # else :
           #   if line[3]=='+':
           #     if line[-1][0]>='0' and line[-1][0]<='9':
-          #       return '\taddi %s,$zero,%s'%(self.regs.get_normal_reg(line[0],line_no),line[-1])
+          #       return '\taddi %s,$zero,%s'%(self.regs.get_normal_reg(line[0],self.line_no),line[-1])
           #       self.mips_writer.addi()
           #     else:
-          #       return '\tadd %s,$zero,%s'%(self.regs.get_normal_reg(line[0],line_no),self.regs.get_normal_reg(line[-1],line_no))
+          #       return '\tadd %s,$zero,%s'%(self.regs.get_normal_reg(line[0],self.line_no),self.regs.get_normal_reg(line[-1],self.line_no))
           #   if line[3]=='-':
           #     if line[-1][0]>='0' and line[-1][0]<='9':
-          #       return '\taddi %s,$zero,-%s'%(self.regs.get_normal_reg(line[0],line_no),line[-1])
+          #       return '\taddi %s,$zero,-%s'%(self.regs.get_normal_reg(line[0],self.line_no),line[-1])
           #     else:
-          #       return '\tadd %s,$zero,-%s'%(self.regs.get_normal_reg(line[0],line_no),self.regs.get_normal_reg(line[-1],line_no))
+          #       return '\tadd %s,$zero,-%s'%(self.regs.get_normal_reg(line[0],self.line_no),self.regs.get_normal_reg(line[-1],self.line_no))
           #   if line[3]=='~': #mips实现按位取反 没写出来
           #     if line[-1][0]>='0' and line[-1][0]<='9':
-          #       return '\taddi %s,$zero,%s'%(self.regs.get_normal_reg(line[0],line_no),line[-1])
+          #       return '\taddi %s,$zero,%s'%(self.regs.get_normal_reg(line[0],self.line_no),line[-1])
           #   if line[3]=='!': #mips实现非
           #     if line[-1][0]>='0' and line[-1][0]<='9':
-          #       return '\tor %s,$zero,%s'%(self.regs.get_normal_reg(line[0],line_no),line[-1])
+          #       return '\tor %s,$zero,%s'%(self.regs.get_normal_reg(line[0],self.line_no),line[-1])
           #     else:
-          #       return '\tor %s,$zero,%s'%(self.regs.get_normal_reg(line[0],line_no),self.regs.get_normal_reg(line[-1],line_no))
+          #       return '\tor %s,$zero,%s'%(self.regs.get_normal_reg(line[0],self.line_no),self.regs.get_normal_reg(line[-1],self.line_no))
 
         if len(line)==5: #目前不能解决的操作 >= <= ==  mul立即数等 因为需要临时变量寄存器
           if line[3]=='+':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.addi(self.regs.get_normal_reg(line[0], line_no),
-                                    self.regs.get_normal_reg(line[2], line_no), line[-1])
+              self.mips_writer.addi(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no), line[-1])
             else:
-              self.mips_writer.add(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),
-                                   self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.add(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='-':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.subi(self.regs.get_normal_reg(line[0], line_no),
-                                    self.regs.get_normal_reg(line[2], line_no), line[-1])
+              self.mips_writer.subi(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no), line[-1])
             else:
-              self.mips_writer.sub(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),
-                                   self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.sub(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='*':
-            self.mips_writer.mul(self.regs.get_normal_reg(line[0], line_no),
-                                 self.regs.get_normal_reg(line[2], line_no),
-                                 self.regs.get_normal_reg(line[-1], line_no))
+            self.mips_writer.mul(self.regs.get_normal_reg(line[0],self.line_no),
+                                 self.regs.get_normal_reg(line[2],self.line_no),
+                                 self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='/':
-            self.mips_writer.div(self.regs.get_normal_reg(line[0], line_no),
-                                 self.regs.get_normal_reg(line[2], line_no),
-                                 self.regs.get_normal_reg(line[-1], line_no))
+            self.mips_writer.div(self.regs.get_normal_reg(line[0],self.line_no),
+                                 self.regs.get_normal_reg(line[2],self.line_no),
+                                 self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='^':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.xori(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),line[-1])
+              self.mips_writer.xori(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),line[-1])
             else:
-              self.mips_writer.xor(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),
-                                   self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.xor(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='<':
-              self.mips_writer.slt(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),
-                                   self.regs.get_normal_reg(line[-1], line_no))
+            if line[-1][0] >= '0' and line[-1][0] <= '9':
+              self.mips_writer.slti(self.regs.get_normal_reg(line[0], self.line_no),
+                                   self.regs.get_normal_reg(line[-1], self.line_no), line[2])
+            else:
+              self.mips_writer.slt(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='>':
-              self.mips_writer.slt(self.regs.get_normal_reg(line[0], line_no),
-                                    self.regs.get_normal_reg(line[-1], line_no),
-                                    self.regs.get_normal_reg(line[2], line_no))
+            if line[-1][0] >= '0' and line[-1][0] <= '9':
+              self.mips_writer.slti(self.regs.get_normal_reg(line[0], self.line_no),
+                                   self.regs.get_normal_reg(line[-1], self.line_no), line[2])
+            else:
+              self.mips_writer.slt(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[-1],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no))
+          if line[3]=='<=':
+            if line[-1][0] >= '0' and line[-1][0] <= '9':
+              self.mips_writer.lei(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[-1],self.line_no), line[2])
+            else:
+              self.mips_writer.le(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no))
+          if line[3]=='>=':
+            if line[-1][0] >= '0' and line[-1][0] <= '9':
+              self.mips_writer.lei(self.regs.get_normal_reg(line[0],self.line_no),
+                                         self.regs.get_normal_reg(line[2],self.line_no), line[-1])
+            else:
+              self.mips_writer.le(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
+
           if line[3]=='&&':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.and_(self.regs.get_normal_reg(line[0], line_no),
-                                    self.regs.get_normal_reg(line[2], line_no),line[-1])
+              self.mips_writer.and_(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no),line[-1])
             else:
-              self.mips_writer.and_(self.regs.get_normal_reg(line[0], line_no),
-                                    self.regs.get_normal_reg(line[2], line_no),
-                                    self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.and_(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no),
+                                    self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='||':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.ori(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),line[-1])
+              self.mips_writer.ori(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),line[-1])
             else:
-              self.mips_writer.or_(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),
-                                   self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.or_(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='<<':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.sll(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no), line[-1])
+              self.mips_writer.sll(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no), line[-1])
             else:
-              self.mips_writer.sll(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no),
-                                   self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.sll(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no),
+                                   self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='>>':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.srl(self.regs.get_normal_reg(line[0], line_no),
-                                   self.regs.get_normal_reg(line[2], line_no), line[-1])
+              self.mips_writer.srl(self.regs.get_normal_reg(line[0],self.line_no),
+                                   self.regs.get_normal_reg(line[2],self.line_no), line[-1])
             else:
-              self.mips_writer.srlv(self.regs.get_normal_reg(line[0], line_no),
-                                    self.regs.get_normal_reg(line[2], line_no),
-                                    self.regs.get_normal_reg(line[-1], line_no))
+              self.mips_writer.srlv(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no),
+                                    self.regs.get_normal_reg(line[-1],self.line_no))
       if line[0]=='GOTO': #GOTO label1
         self.mips_writer.j(line[1])
       if line[0]=='IF': #IF var GOTO label1
@@ -177,14 +202,14 @@ class Translator:
       if line[0]=='IFNOT': #IFNOT var GOTO label1
         self.mips_writer.beq(line[1],line[-1])
       if line[0]=='RETURN': #RETURN var1
-        #return '\tmove $v0,%s\n\tjr $ra'%self.regs.get_normal_reg(line[1],line_no)
+        #return '\tmove $v0,%s\n\tjr $ra'%self.regs.get_normal_reg(line[1],self.line_no)
         pass#TODO
       if line[0]=='MALLOC': #MALLOC var1[size]
         pass#TODO
       if line[0]=='CALL': #CALL f (var1,var2,var3...) 这里不太确定
         if line[3]=='read' or line[3]=='print':
           # TODO 这个不知道能不能用，我暂时先不改了 -awmleer
-          return '\taddi $sp,$sp,-4\n\tsw $ra,0($sp)\n\tjal %s\n\tlw $ra,0($sp)\n\tmove %s,$v0\n\taddi $sp,$sp,4'%(line[-1],self.regs.get_normal_reg(line[0],line_no))
+          return '\taddi $sp,$sp,-4\n\tsw $ra,0($sp)\n\tjal %s\n\tlw $ra,0($sp)\n\tmove %s,$v0\n\taddi $sp,$sp,4'%(line[-1],self.regs.get_normal_reg(line[0],self.line_no))
         else:
           temp_str = line[3].split('(')
           function_name = temp_str[0]
@@ -193,26 +218,25 @@ class Translator:
       if line[0]=='Function': #FUNCTION f(var1,var2,var3...)
         function_name=line[1].split('(')[0]
         self.mips_writer.write_function_label(function_name)
-
       self.line_no=self.line_no+1
 
     # return '\tbeq %s,%s,%s' % (
-    # self.regs.get_normal_reg(line[1], line_no), self.regs.get_normal_reg(line[3], line_no), line[-1])
+    # self.regs.get_normal_reg(line[1],self.line_no), self.regs.get_normal_reg(line[3],self.line_no), line[-1])
     # if line[2] == '!=':
     #   return '\tbne %s,%s,%s' % (
-    #   self.regs.get_normal_reg(line[1], line_no), self.regs.get_normal_reg(line[3], line_no), line[-1])
+    #   self.regs.get_normal_reg(line[1],self.line_no), self.regs.get_normal_reg(line[3],self.line_no), line[-1])
     # if line[2] == '>':
     #   return '\tbgt %s,%s,%s' % (
-    #   self.regs.get_normal_reg(line[1], line_no), self.regs.get_normal_reg(line[3], line_no), line[-1])
+    #   self.regs.get_normal_reg(line[1],self.line_no), self.regs.get_normal_reg(line[3],self.line_no), line[-1])
     # if line[2] == '<':
     #   return '\tblt %s,%s,%s' % (
-    #   self.regs.get_normal_reg(line[1], line_no), self.regs.get_normal_reg(line[3], line_no), line[-1])
+    #   self.regs.get_normal_reg(line[1],self.line_no), self.regs.get_normal_reg(line[3],self.line_no), line[-1])
     # if line[2] == '>=':
     #   return '\tbge %s,%s,%s' % (
-    #   self.regs.get_normal_reg(line[1], line_no), self.regs.get_normal_reg(line[3], line_no), line[-1])
+    #   self.regs.get_normal_reg(line[1],self.line_no), self.regs.get_normal_reg(line[3],self.line_no), line[-1])
     # if line[2] == '<=':
     #   return '\tble %s,%s,%s' % (
-    #   self.regs.get_normal_reg(line[1], line_no), self.regs.get_normal_reg(line[3], line_no), line
+    #   self.regs.get_normal_reg(line[1],self.line_no), self.regs.get_normal_reg(line[3],self.line_no), line
 
 #parser() #主函数
 

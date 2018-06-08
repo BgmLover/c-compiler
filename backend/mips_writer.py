@@ -33,7 +33,8 @@ class MIPSWriter:
 
   def slt(self,dst,src1,src2):
     self.write('slt $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
-
+  def slti(self,dst,src1,constant):
+    self.write('slt $' + str(dst) + ',$' + str(src1) + ',' + str(constant))
   def sll(self,dst,src1,src2):
     self.write('sll $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
 
@@ -70,6 +71,13 @@ class MIPSWriter:
     self.write('j ' + label)
   def write_label(self, label):
     self.outfile.write(label+'\n')
+  def le(self,reg1,reg2,reg3):
+    self.write('slt $'+reg1+','+reg2+','+reg3)
+    self.write('nor $'+reg1+','+reg1+','+'$zero')
+
+  def lei(self,reg1,reg2,constant):
+    self.write('slti $'+reg1+','+reg2+','+constant)
+    self.write('nor $'+reg1+','+reg1+','+'$zero')
 
   def write_function_label(self, function_name):
     self.outfile.write(function_name + ':\n')
@@ -102,6 +110,6 @@ print:
    la $a0,_ret
    syscall
    move $v0,$0
-   jr $ra\n\n '''
+   jr $ra\n\n'''
     self.outfile.write(template)
 
