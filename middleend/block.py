@@ -1,7 +1,3 @@
-def count():
-  print('test\n')
-
-
 class Block:
   function_node=None
   variable_map=None
