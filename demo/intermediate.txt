@@ -1,14 +1,26 @@
-Function main():
-MALLOC temp1[5]
-temp2 := 0
+Function fact(temp1):
+temp2 := temp1 <= 1
+IFNOT temp2 GOTO label1
+RETURN 1
+GOTO label2
 LABEL label1:
-temp3 := temp2 < 5
-IF temp3 GOTO label2
-GOTO label3
+temp3 := temp1 - 1
+temp4 := CALL fact(temp3)
+temp5 := temp1 * temp4
+RETURN temp5
 LABEL label2:
-temp1[temp2] := temp2
-temp4 := temp2
-temp2 := temp2 + 1
-GOTO label1
+
+Function main():
+MALLOC temp6[5]
+temp1 := 0
 LABEL label3:
-RETURN temp1
+temp7 := temp1 < 5
+IF temp7 GOTO label4
+GOTO label5
+LABEL label4:
+temp6[temp1] := temp1
+temp8 := temp1
+temp1 := temp1 + 1
+GOTO label3
+LABEL label5:
+RETURN temp6

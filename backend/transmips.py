@@ -1,7 +1,7 @@
 import re
-from .regs import Regs
 from .frame import StackFrame, stack_frames
 from .mips_writer import MIPSWriter
+
 #寄存器 我感觉这个不够啊 没有zero 但是我现在不敢轻举妄动
 regs=['t1','t2','t3','t4','t5','t6','t7','t8','t9','s0','s1','s2','s3','s4','s5','s6','s7']
 table={}

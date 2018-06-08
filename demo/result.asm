@@ -20,10 +20,17 @@ print:
     syscall
     move $v0,$0
     jr $ra
-label1:
-	j label3
-label2:
-	j label1
-label3:
 	move $v0,$t1
+	jr $ra
+	j label2
+label1:
+	move $v0,$t2
+	jr $ra
+label2:
+label3:
+	j label5
+label4:
+	j label3
+label5:
+	move $v0,$t2
 	jr $ra
