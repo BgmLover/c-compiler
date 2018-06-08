@@ -1,3 +1,4 @@
+from . import logger
 from .logger import Loggable
 from .block import Block
 from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement, ArrayItemElement
@@ -37,7 +38,7 @@ class Parser:
 
   def lookup_variable_current_block(self,identifier,node):
     if str(identifier) in self.block_stack[-1].variable_map:
-      return self.block_stack[-1][str(identifier)]
+      return self.block_stack[-1].variable_map[str(identifier)]
     message = "can't find the variable " + str(identifier) + " in the current block"
     raise ParserError(node, message)
 
