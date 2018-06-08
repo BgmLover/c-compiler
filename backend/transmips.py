@@ -28,34 +28,43 @@ class Translator:
 
 
   def function_call(self,function_name, params):
+    ra_offset = None
+    if len(stack_frames) > 0:
+      stack_frame = stack_frames[-1]
+      ra_offset = stack_frame.request_space(4)
+      self.mips_writer.sw('ra', 'fp', -ra_offset)
     stack_frame = StackFrame()
     stack_frame.params = params
     stack_frames.append(stack_frame)
     stack_frame.request_space(len(normal_regs))
-    self.mips_writer.addi('fp', 'fp', -len(normal_regs))
+    self.mips_writer.addi('fp', 'fp', -stack_frame.request_space(len(normal_regs)*4))
     count = 0
-    for reg in normal_regs:
+    for reg in ['ra']+normal_regs:
       self.mips_writer.sw(reg, 'fp', count)
       count += 4
-      self.mips_writer.addi('fp', 'fp', len(normal_regs))
     for param in params:
       offset = stack_frame.request_space(4)
       self.mips_writer.addi('fp', 'fp', -offset)
       self.mips_writer.sw(self.regs.get_normal_reg(param,self.line_no), 'fp')
       self.mips_writer.addi('fp', 'fp', offset)
     self.mips_writer.jal(function_name)
+    self.mips_writer.lw('ra', 'fp', -ra_offset)
 
 
   def function_return(self, variable=None):
     stack_frames.pop()
     if variable is not None:
       self.mips_writer.addi('v0', self.regs.get_normal_reg(variable,self.line_no))
-    self.mips_writer.addi('fp', 'fp', -len(normal_regs))
+    self.mips_writer.addi('fp', 'fp', 4-len(normal_regs))
     count = 0
     for reg in normal_regs:
       self.mips_writer.lw(reg, 'fp', count)
       count += 4
-    self.mips_writer.addi('fp', 'fp', len(normal_regs)+stack_frames[-1].use_amount)
+    if len(stack_frames) == 0:
+      offset = len(normal_regs)
+    else:
+      offset = len(normal_regs) + stack_frames[-1].use_amount
+    self.mips_writer.addi('fp', 'fp', offset)
     self.mips_writer.jr('ra')
 
   #翻译成汇编
@@ -212,6 +221,9 @@ class Translator:
       if line[0]=='CALL': #CALL f (var1,var2,var3...) 这里不太确定
         if line[3]=='read' or line[3]=='print':
           # TODO 这个不知道能不能用，我暂时先不改了 -awmleer
+          self.mips_writer.addi('sp', 'sp', -4)
+          self.mips_writer.sw('ra', 'sp')
+
           return '\taddi $sp,$sp,-4\n\tsw $ra,0($sp)\n\tjal %s\n\tlw $ra,0($sp)\n\tmove %s,$v0\n\taddi $sp,$sp,4'%(line[-1],self.regs.get_normal_reg(line[0],self.line_no))
         else:
           temp_str = line[3].split('(')
