@@ -2,10 +2,6 @@ from middleend.elements import TempElement, FunctionElement, ConstantElement
 
 class IRWriter:
   outfile = None
-  id_temp=0
-  id_label=0
-  id_var=0      #var 和 array 也许不需要用到数字id来命名
-  id_array=0
 
   CodeList=[]
 

@@ -1,10 +1,14 @@
 import re
 from .regs import Regs
+from .frame import StackFrame, stack_frames
+from .mips_writer import MIPSWriter
 #寄存器 我感觉这个不够啊 没有zero 但是我现在不敢轻举妄动
 regs=['t1','t2','t3','t4','t5','t6','t7','t8','t9','s0','s1','s2','s3','s4','s5','s6','s7']
 table={}
 reg_ok={}
 variables=[]
+
+mips_writer = MIPSWriter('path') #TODO set this path
 
 #处理变量
 def varDistribution(Inter):
@@ -46,6 +50,38 @@ def Get_R(string):
         reg_ok[reg]=0     #寄存器reg设置为已用
         return '$'+reg
 
+
+def function_call(function_name, params):
+  stack_frame = StackFrame()
+  stack_frame.params = params
+  stack_frames.append(stack_frame)
+  stack_frame.request_space(len(regs))
+  mips_writer.addi('fp', 'fp', -len(regs))
+  count = 0
+  for reg in regs:
+    mips_writer.sw(reg, 'fp', count)
+  mips_writer.addi('fp', 'fp', len(regs))
+  for param in params:
+    offset = stack_frame.request_space(1)
+    mips_writer.addi('fp', 'fp', -offset)
+    mips_writer.sw(get_normal_reg(param), 'fp')
+    mips_writer.addi('fp', 'fp', offset)
+  mips_writer.jal(function_name)
+
+
+def function_return(variable):
+  stack_frame = stack_frames.pop()
+  mips_writer.addi('v0', get_normal_reg(variable))
+  mips_writer.addi('fp', 'fp', -len(regs))
+  count = 0
+  for reg in regs:
+    mips_writer.lw(reg, 'fp', count)
+  mips_writer.addi('fp', 'fp', len(regs))
+  mips_writer.jr('ra')
+
+
+
+
 #翻译成汇编
 def translate(line):
   if line[0]=='LABEL': #LABEL n: -> n:
@@ -56,9 +92,13 @@ def translate(line):
         return '\taddi %s,$zero,%s'%(Get_R(line[0]),line[-1])
       else:
         return '\tmove %s,%s'%(Get_R(line[0]),line[2])
-    if len(line)==4: #一元op CALL f 目前不能解决的 ～
+    if len(line)==4:
       if line[2]=='CALL':
-        return
+        temp_str = line[3].split('(')
+        function_name = temp_str[0]
+        params = temp_str[1][:-1].split(',')
+        function_call(function_name, params)
+        mips_writer.addi(line[0], 'v0')
       else :
         if line[3]=='+':
           if line[-1][0]>='0' and line[-1][0]<='9':
@@ -181,11 +221,15 @@ def translate(line):
     pass#TODO
   if line[0]=='CALL': #CALL f (var1,var2,var3...) 这里不太确定
     if line[3]=='read' or line[3]=='print':
+      # TODO 这个不知道能不能用，我暂时先不改了 -awmleer
       return '\taddi $sp,$sp,-4\n\tsw $ra,0($sp)\n\tjal %s\n\tlw $ra,0($sp)\n\tmove %s,$v0\n\taddi $sp,$sp,4'%(line[-1],Get_R(line[0]))
     else:
-      return '\taddi $sp,$sp,-24\n\tsw $t0,0($sp)\n\tsw $ra,4($sp)\n\tsw $t1,8($sp)\n\tsw $t2,12($sp)\n\tsw $t3,16($sp)\n\tsw $t4,20($sp)\n\tjal %s\n\tlw $a0,0($sp)\n\tlw $ra,4($sp)\n\tlw $t1,8($sp)\n\tlw $t2,12($sp)\n\tlw $t3,16($sp)\n\tlw $t4,20($sp)\n\taddi $sp,$sp,24\n\tmove %s $v0'%(line[-1],Get_R(line[0]))
+      temp_str = line[3].split('(')
+      function_name = temp_str[0]
+      params = temp_str[1][:-1].split(',')
+      function_call(function_name, params)
   if line[0]=='FUNCTION': #FUNCTION f(var1,var2,var3...)
-    return '%s:'%line[1]
+    return 'func_%s:'%line[1]
   return ''
 
 def write_to_txt(Obj):
