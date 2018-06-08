@@ -46,15 +46,16 @@ class Translator:
     self.mips_writer.jal(function_name)
 
 
-  def function_return(self,variable):
-    stack_frame = stack_frames.pop()
-    self.mips_writer.addi('v0', self.regs.get_normal_reg(variable,self.line_no))
+  def function_return(self, variable=None):
+    stack_frames.pop()
+    if variable is not None:
+      self.mips_writer.addi('v0', self.regs.get_normal_reg(variable,self.line_no))
     self.mips_writer.addi('fp', 'fp', -len(normal_regs))
     count = 0
     for reg in normal_regs:
       self.mips_writer.lw(reg, 'fp', count)
       count += 4
-    self.mips_writer.addi('fp', 'fp', len(normal_regs))
+    self.mips_writer.addi('fp', 'fp', len(normal_regs)+stack_frames[-1].use_amount)
     self.mips_writer.jr('ra')
 
   #翻译成汇编
@@ -203,9 +204,11 @@ class Translator:
         self.mips_writer.beq(line[1],line[-1])
       if line[0]=='RETURN': #RETURN var1
         #return '\tmove $v0,%s\n\tjr $ra'%self.regs.get_normal_reg(line[1],self.line_no)
-        pass#TODO
+        self.function_return(line[1] if len(line)>1 else None)
       if line[0]=='MALLOC': #MALLOC var1[size]
-        pass#TODO
+        s = line[1].split('[')
+        offset = stack_frames[-1].request_space(s[1][:-1])
+        self.mips_writer.addi(s[0], 'fp', -offset)
       if line[0]=='CALL': #CALL f (var1,var2,var3...) 这里不太确定
         if line[3]=='read' or line[3]=='print':
           # TODO 这个不知道能不能用，我暂时先不改了 -awmleer
