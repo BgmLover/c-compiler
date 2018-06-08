@@ -1,7 +1,7 @@
 import re
-from .frame import StackFrame, stack_frames
-from .mips_writer import MIPSWriter
-
+from backend.frame import StackFrame, stack_frames
+from backend.mips_writer import MIPSWriter
+from backend.regs import Regs,Reg,Liveness_analysis
 #寄存器 我感觉这个不够啊 没有zero 但是我现在不敢轻举妄动
 regs=['t1','t2','t3','t4','t5','t6','t7','t8','t9','s0','s1','s2','s3','s4','s5','s6','s7']
 table={}
@@ -60,9 +60,10 @@ def function_call(function_name, params):
   count = 0
   for reg in regs:
     mips_writer.sw(reg, 'fp', count)
+    count += 4
   mips_writer.addi('fp', 'fp', len(regs))
   for param in params:
-    offset = stack_frame.request_space(1)
+    offset = stack_frame.request_space(4)
     mips_writer.addi('fp', 'fp', -offset)
     mips_writer.sw(get_normal_reg(param), 'fp')
     mips_writer.addi('fp', 'fp', offset)
@@ -76,6 +77,7 @@ def function_return(variable):
   count = 0
   for reg in regs:
     mips_writer.lw(reg, 'fp', count)
+    count += 4
   mips_writer.addi('fp', 'fp', len(regs))
   mips_writer.jr('ra')
 
@@ -275,4 +277,6 @@ def parser():
     Obj.append(obj_line)
   write_to_txt(Obj)
 
-parser() #主函数
+#parser() #主函数
+lines=Load_Inter('../demo/intermediate.txt')
+la=Liveness_analysis(lines)
