@@ -1,9 +1,12 @@
 from backend.frame import stack_frames
+from backend.mips_writer import MIPSWriter
+import random
 class Regs:
   #normal_regs=['t0','t1','t2','t3','t4','t5','t6','t7','t8','t9','s0','s1','s2','s3','s4','s5','s6','s7']
   normal_regs=[]
   liveness_analysis = None
-  def __init__(self,code_lines):
+  mips_writer=None
+  def __init__(self,code_lines,mips_writer):
     for t in range(10):
       new_t_reg=Reg('t'+str(t))
       self.normal_regs.append(new_t_reg)
@@ -11,6 +14,7 @@ class Regs:
       new_s_reg=Reg('s'+str(s))
       self.normal_regs.append(new_s_reg)
     self.liveness_analysis = Liveness_analysis(code_lines)
+    self.mips_writer=mips_writer
 
   def get_normal_reg(self,variable,line_no):
     result=self.find_available_reg(variable)
@@ -25,8 +29,21 @@ class Regs:
       result_2=self.find_available_reg(variable)
       if result_2!=False:
         return result_2
-      else:
-        return None
+      else:#寄存器溢出
+        while True:
+          reg_id=random.randint(0,len(self.normal_regs))
+          if self.normal_regs[reg_id].is_spilled==False:
+            break
+        offset=stack_frames[-1].request_space(4)
+        self.mips_writer.addi('fp', 'fp', -offset)
+        reg_to_spill=self.normal_regs[reg_id]
+        self.mips_writer.sw(reg_to_spill.name, 'fp')
+        self.mips_writer.addi('fp', 'fp', -offset)
+
+        reg_to_spill.is_spilled=True
+        reg_to_spill.spilled_var=reg_to_spill.variable
+        reg_to_spill.variable=variable
+        return reg_to_spill.name
 
 
   def find_available_reg(self,variable):
@@ -41,12 +58,14 @@ class Reg:
   name=None
   available=None
   variable_name=None
-
+  is_spilled=None
+  spilled_var=None
   def __init__(self,reg_name):
     self.name=reg_name
     self.available=True
     self.variable_name=None
-
+    self.is_spilled=False
+    self.spilled_var=None
 
 class Liveness_analysis:
   code_list=None
