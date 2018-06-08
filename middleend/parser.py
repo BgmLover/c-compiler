@@ -1,4 +1,3 @@
-from . import logger
 from .logger import Loggable
 from .block import Block
 from .elements import TempElement, ConstantElement, FunctionElement, IdentifierElement, ArrayItemElement
