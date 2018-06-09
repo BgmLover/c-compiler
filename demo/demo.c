@@ -8,14 +8,11 @@ int fact(int i){
 }
 
 int main(){
-    int a[5];
     int i;
-    int b;
-    if(i){
-       for(i=0;i<5;i++){
-    a[i]=i;}
+    int j = read();
+    for(i = 0; i<j; i++){
+        print(fact(i));
     }
-    b=2;
-    return a;
+    return 0;
 }
 

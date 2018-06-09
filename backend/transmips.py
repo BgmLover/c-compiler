@@ -1,4 +1,3 @@
-from backend.frame import StackFrame, stack_frames
 from backend.mips_writer import MIPSWriter
 from backend.regs import Regs,Reg,Liveness_analysis
 #寄存器 我感觉这个不够啊 没有zero 但是我现在不敢轻举妄动
@@ -28,44 +27,46 @@ class Translator:
 
 
   def function_call(self,function_name, params):
-    ra_offset = None
-    if len(stack_frames) > 0:
-      stack_frame = stack_frames[-1]
-      ra_offset = stack_frame.request_space(4)
-      self.mips_writer.sw('ra', 'fp', -ra_offset)
-    stack_frame = StackFrame()
-    stack_frame.params = params
-    stack_frames.append(stack_frame)
-    stack_frame.request_space(len(normal_regs))
-    self.mips_writer.addi('fp', 'fp', -stack_frame.request_space(len(normal_regs)*4))
+    saved_regs = ['ra'] + normal_regs
+    # use_amount += 4
+    # self.mips_writer.addi('fp', 'fp', -use_amount)
+    # self.mips_writer.sw('ra', 'fp', 4)
+    # self.mips_writer.addi('fp', 'fp', use_amount)
+    use_amount = len(saved_regs)*4
+    self.mips_writer.addi('fp', 'fp', -use_amount)
     count = 0
-    for reg in ['ra']+normal_regs:
-      self.mips_writer.sw(reg, 'fp', count)
+    for reg in saved_regs:
       count += 4
+      self.mips_writer.sw(reg, 'fp', count)
+    self.mips_writer.addi('fp', 'fp', use_amount)
+    param_count = 0
     for param in params:
-      offset = stack_frame.request_space(4)
-      self.mips_writer.addi('fp', 'fp', -offset)
-      self.mips_writer.sw(self.regs.get_normal_reg(param,self.line_no), 'fp')
-      self.mips_writer.addi('fp', 'fp', offset)
+      param_count += 1
+      if param_count <= 4:
+        self.mips_writer.addi(
+          'a'+str(param_count-1),
+          self.regs.get_normal_reg(param, self.line_no)
+        )
+      # else:
+      #   use_amount += 4
+      #   self.mips_writer.addi('fp', 'fp', -use_amount)
+      #   self.mips_writer.sw(self.regs.get_normal_reg(param,self.line_no), 'fp')
+      #   self.mips_writer.addi('fp', 'fp', use_amount)
     self.mips_writer.jal(function_name)
-    self.mips_writer.lw('ra', 'fp', -ra_offset)
+    self.mips_writer.lw('ra', 'fp', 0)
+    self.mips_writer.addi('fp', 'fp', -use_amount)
+    count = 0
+    for reg in saved_regs:
+      self.mips_writer.lw(reg, 'fp', count)
+      count += 4
+    self.mips_writer.addi('fp', 'fp', use_amount)
 
 
   def function_return(self, variable=None):
-    stack_frames.pop()
     if variable is not None:
       self.mips_writer.addi('v0', self.regs.get_normal_reg(variable,self.line_no))
-    self.mips_writer.addi('fp', 'fp', 4-len(normal_regs))
-    count = 0
-    for reg in normal_regs:
-      self.mips_writer.lw(reg, 'fp', count)
-      count += 4
-    if len(stack_frames) == 0:
-      offset = len(normal_regs)
-    else:
-      offset = len(normal_regs) + stack_frames[-1].use_amount
-    self.mips_writer.addi('fp', 'fp', offset)
     self.mips_writer.jr('ra')
+
 
   #翻译成汇编
   def translate(self):
@@ -187,10 +188,10 @@ class Translator:
       if line[0]=='RETURN': #RETURN var1
         #return '\tmove $v0,%s\n\tjr $ra'%self.regs.get_normal_reg(line[1],self.line_no)
         self.function_return(line[1] if len(line)>1 else None)
-      if line[0]=='MALLOC': #MALLOC var1[size]
-        s = line[1].split('[')
-        offset = stack_frames[-1].request_space(s[1][:-1])
-        self.mips_writer.addi(s[0], 'fp', -offset)
+      # if line[0]=='MALLOC': #MALLOC var1[size]
+      #   s = line[1].split('[')
+      #   offset = stack_frames[-1].request_space(s[1][:-1])
+      #   self.mips_writer.addi(s[0], 'fp', -offset)
       if line[0]=='CALL': #CALL f (var1,var2,var3...) 这里不太确定
         if line[3]=='read' or line[3]=='print':
           # TODO 这个不知道能不能用，我暂时先不改了 -awmleer

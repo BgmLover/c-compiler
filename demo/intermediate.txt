@@ -10,16 +10,18 @@ temp5 := temp1 * temp4
 RETURN temp5
 LABEL label2:
 Function main():
-MALLOC temp6[5]
-temp7 := 0
+temp8 := CALL read()
+temp7 := temp8
+temp6 := 0
 LABEL label3:
-temp8 := temp7 < 5
-IF temp8 GOTO label4
+temp9 := temp6 < temp7
+IF temp9 GOTO label4
 GOTO label5
 LABEL label4:
-temp6[temp7] := temp7
-temp9 := temp7
-temp7 := temp7 + 1
+temp10 := CALL fact(temp6)
+temp11 := CALL print(temp10)
+temp12 := temp6
+temp6 := temp6 + 1
 GOTO label3
 LABEL label5:
-RETURN temp6
+RETURN 0
