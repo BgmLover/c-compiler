@@ -3,6 +3,8 @@ import { NgModule } from '@angular/core';
 
 
 import { AppComponent } from './app.component';
+import {TreeModule} from "angular-tree-component";
+import {HttpClientModule} from "@angular/common/http";
 
 
 @NgModule({
@@ -10,7 +12,9 @@ import { AppComponent } from './app.component';
     AppComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    HttpClientModule,
+    TreeModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
