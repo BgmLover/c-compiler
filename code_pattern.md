@@ -4,7 +4,7 @@
 
 | Grammer                      | Description                                                  |
 | :--------------------------- | :----------------------------------------------------------- |
-| LABEL n :                    | 声明标签（n=0,1,2,3....）                                    |
+| LABEL label_name :                    | 声明标签                                  |
 | left := right | 赋值语句 |
 |  | right: var binomial_op var \| var \| unary_op var \| *temp \| &temp \| array_element \| CALL f(var1,var2,var3...) |
 |  | var: temp \| co$nstant |

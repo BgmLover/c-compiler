@@ -1,14 +1,16 @@
 class MIPSWriter:
   outfile = None
-
   CodeList=[]
 
   def write(self, code):
     self.outfile.write('\t'+code+'\n')
+
   def li(self,dst,constant):
     self.write('li $'+dst+','+constant)
+
   def move(self,dst,src):
     self.write('move $'+dst+',$'+src)
+
   def sw(self, reg, address, offset=0):
     self.write('sw $'+reg+','+str(offset)+'($'+address+')')
 

@@ -1,7 +1,7 @@
 class Block:
-  function_node=None
-  variable_map=None
-  label_map=None
+  function_node=None   #函数节点
+  variable_map=None    #变量符号表
+  label_map=None       #label映射表
   #arrayMap={}
   break_label=None     #如果break，将会跳到哪个label
   continue_label=None  #如果continue，将会跳到哪个label
