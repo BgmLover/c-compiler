@@ -7,7 +7,7 @@ class Regs:
   liveness_analysis = None
   mips_writer=None
   def __init__(self,code_lines,mips_writer):
-    for t in range(10):
+    for t in range(1,10):
       new_t_reg=Reg('t'+str(t))
       self.normal_regs.append(new_t_reg)
     for s in range(8):

@@ -10,8 +10,12 @@ int fact(int i){
 int main(){
     int a[5];
     int i;
-    for(i=0;i<5;i++){
+    int b;
+    if(i){
+       for(i=0;i<5;i++){
     a[i]=i;}
+    }
+    b=2;
     return a;
 }
 
