@@ -22,9 +22,6 @@ class MIPSWriter:
   def xori(self, dst, src, immediate=0):
     self.write('xori $'+str(dst)+',$'+str(src)+','+str(immediate))
 
-  def subi(self, dst, src, immediate=0):
-    self.write('subi $'+str(dst)+',$'+str(src)+','+str(immediate))
-
   def add(self,dst,src1,src2):
     self.write('add $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
 

@@ -108,8 +108,8 @@ class Translator:
                                    self.regs.get_normal_reg(line[-1],self.line_no))
           if line[3]=='-':
             if line[-1][0]>='0' and line[-1][0]<='9':
-              self.mips_writer.subi(self.regs.get_normal_reg(line[0],self.line_no),
-                                    self.regs.get_normal_reg(line[2],self.line_no), line[-1])
+              self.mips_writer.addi(self.regs.get_normal_reg(line[0],self.line_no),
+                                    self.regs.get_normal_reg(line[2],self.line_no), '-'+(line[-1]))
             else:
               self.mips_writer.sub(self.regs.get_normal_reg(line[0],self.line_no),
                                    self.regs.get_normal_reg(line[2],self.line_no),
