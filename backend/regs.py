@@ -17,8 +17,12 @@ class Regs:
     self.mips_writer=mips_writer
 
   def get_normal_reg(self,variable,line_no):
+    for reg in self.normal_regs:
+      if reg.variable_name==variable:
+        return reg.name
     result=self.find_available_reg(variable)
     if result!=False:
+      #self.normal_regs[result].available=False
       return result
     else:
       for reg in self.normal_regs:
@@ -50,6 +54,7 @@ class Regs:
     for reg in self.normal_regs:
       if reg.available == True:
         reg.variable_name = variable
+        reg.available=False
         return reg.name
     return False
 

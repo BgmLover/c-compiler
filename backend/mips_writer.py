@@ -8,12 +8,12 @@ class MIPSWriter:
   def li(self,dst,constant):
     self.write('li $'+dst+','+constant)
   def move(self,dst,src):
-    self.write('move $'+dst+','+src)
+    self.write('move $'+dst+',$'+src)
   def sw(self, reg, address, offset=0):
     self.write('sw $'+reg+','+str(offset)+'($'+address+')')
 
   def lw(self, reg, address, offset=0):
-    self.write('sw $'+reg+','+str(offset)+'($'+address+')')
+    self.write('lw $'+reg+','+str(offset)+'($'+address+')')
 
   def addi(self, dst, src, immediate=0):
     self.write('addi $'+str(dst)+',$'+str(src)+','+str(immediate))
@@ -23,42 +23,42 @@ class MIPSWriter:
     self.write('xori $'+str(dst)+',$'+str(src)+','+str(immediate))
 
   def add(self,dst,src1,src2):
-    self.write('add $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('add $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def xor(self,dst,src1,src2):
-    self.write('xor $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('xor $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def slt(self,dst,src1,src2):
-    self.write('slt $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('slt $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
   def slti(self,dst,src1,constant):
-    self.write('slt $' + str(dst) + ',$' + str(src1) + ',' + str(constant))
+    self.write('slt $' + str(dst) + ',$' + str(src1) + ',$' + str(constant))
   def sll(self,dst,src1,src2):
     self.write('sll $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
 
   def sllv(self,dst,src1,src2):
-    self.write('sllv $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('sllv $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def srl(self,dst,src1,src2):
-    self.write('srl $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('srl $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def srlv(self,dst,src1,src2):
-    self.write('srlv $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('srlv $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def and_(self,dst,src1,src2):
-    self.write('and $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('and $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
   def andi(self,dst,src1,constant):
     self.write('andi $' + str(dst) + ',$' + str(src1) + ',' + str(constant))
   def or_(self,dst,src1,src2):
-    self.write('or $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('or $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def sub(self,dst,src1,src2):
-    self.write('sub $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('sub $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def mul(self, dst, src1, src2):
-    self.write('mul $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('mul $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def div(self, dst, src1, src2):
-    self.write('div $' + str(dst) + ',$' + str(src1) + ',' + str(src2))
+    self.write('div $' + str(dst) + ',$' + str(src1) + ',$' + str(src2))
 
   def jal(self, label):
     self.write('jal '+label)
@@ -84,29 +84,33 @@ class MIPSWriter:
     self.write('bne $'+reg+','+'$zero,'+label)
 
   def gti(self,dst,src1,constant):
-    self.write('slti $'+dst+',$'+src1+','+constant)
-    self.write('nor $'+dst+',$'+dst+',$zero')#>=
-    self.write('xori $'+'t0'+',$'+src1+','+constant)
-    self.write('nor $'+'t0'+',$'+'t0'+',$zero')#!=
-    self.write('and $'+dst+',$'+'t0'+',$'+dst)
+    self.li('t0',constant)
+    self.gt(dst,src1,'t0')
 
   def gt(self,dst,src1,src2):
-    self.write('slti $'+dst+',$'+src1+','+src2)
-    self.write('nor $'+dst+',$'+dst+',$zero')#>=
-    self.write('xori $'+'t0'+',$'+src1+','+src2)
-    self.write('nor $'+'t0'+',$'+'t0'+',$zero')#!=
-    self.write('and $'+dst+',$'+'t0'+',$'+dst)
+    self.write('bgt $'+src1+',$'+src2+',gt1')
+    self.li(dst,'0')
+    self.j('gt2')
+    self.write_label('gt1:')
+    self.li(dst,'1')
+    self.write_label('gt2:')
+
+    # self.write('slti $'+dst+',$'+src1+','+src2)
+    # self.write('nor $'+dst+',$'+dst+',$zero')#>=
+    # self.write('xori $'+'t0'+',$'+src1+','+src2)
+    # self.write('or $'+'t0'+',$'+'t0'+',$zero')#!=
+    # self.write('and $'+dst+',$'+'t0'+',$'+dst)
 
   def le(self,dst,src1,src2):
     self.gt(dst,src1,src2)
-    self.write('nor $'+dst+',$'+dst+'$zero')
+    self.write('xori $'+dst+',$'+dst+',1')
 
   def lei(self,dst,src1,constant):
-    self.gt(dst,src1,constant)
-    self.write('nor $'+dst+',$'+dst+'$zero')
+    self.gti(dst,src1,constant)
+    self.write('xori $'+dst+',$'+dst+',1')
 
   def beq(self,reg,label):
-    self.write('bne $'+reg+','+'$zero,'+label)
+    self.write('beq $'+reg+','+'$zero,'+label)
 
   def __init__(self, path):
     self.outfile = open(path, "w")

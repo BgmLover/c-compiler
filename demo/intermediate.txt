@@ -12,15 +12,16 @@ LABEL label2:
 Function main():
 temp8 := CALL read()
 temp7 := temp8
-temp6 := 0
+temp6 := 1
 LABEL label3:
-temp9 := temp6 < temp7
-IF temp9 GOTO label4
+temp9 := temp7 + 1
+temp10 := temp6 < temp9
+IF temp10 GOTO label4
 GOTO label5
 LABEL label4:
-temp10 := CALL fact(temp6)
-temp11 := CALL print(temp10)
-temp12 := temp6
+temp11 := CALL fact(temp6)
+temp12 := CALL print(temp11)
+temp13 := temp6
 temp6 := temp6 + 1
 GOTO label3
 LABEL label5:

@@ -7,12 +7,17 @@ int fact(int i){
     }
 }
 
+
+
+
+
 int main(){
     int i;
-    int j = read();
-    for(i = 0; i<j; i++){
-        print(fact(i));
-    }
+    int times;
+    times=read();
+    for(i=1;i<times+1;i++)
+    print(fact(i));
+
     return 0;
 }
 

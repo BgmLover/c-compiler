@@ -29,16 +29,16 @@ class Translator:
   def function_call(self,function_name, params):
     saved_regs = ['ra'] + normal_regs
     # use_amount += 4
-    # self.mips_writer.addi('fp', 'fp', -use_amount)
-    # self.mips_writer.sw('ra', 'fp', 4)
-    # self.mips_writer.addi('fp', 'fp', use_amount)
+    # self.mips_writer.addi('sp', 'sp', -use_amount)
+    # self.mips_writer.sw('ra', 'sp', 4)
+    # self.mips_writer.addi('sp', 'sp', use_amount)
     use_amount = len(saved_regs)*4
-    self.mips_writer.addi('fp', 'fp', -use_amount)
+    self.mips_writer.addi('sp', 'sp', -use_amount)
     count = 0
     for reg in saved_regs:
+      self.mips_writer.sw(reg, 'sp', count)
       count += 4
-      self.mips_writer.sw(reg, 'fp', count)
-    self.mips_writer.addi('fp', 'fp', use_amount)
+    # self.mips_writer.addi('sp', 'sp', use_amount)
     param_count = 0
     for param in params:
       param_count += 1
@@ -49,22 +49,24 @@ class Translator:
         )
       # else:
       #   use_amount += 4
-      #   self.mips_writer.addi('fp', 'fp', -use_amount)
-      #   self.mips_writer.sw(self.regs.get_normal_reg(param,self.line_no), 'fp')
-      #   self.mips_writer.addi('fp', 'fp', use_amount)
+      #   self.mips_writer.addi('sp', 'sp', -use_amount)
+      #   self.mips_writer.sw(self.regs.get_normal_reg(param,self.line_no), 'sp')
+      #   self.mips_writer.addi('sp', 'sp', use_amount)
     self.mips_writer.jal(function_name)
-    self.mips_writer.lw('ra', 'fp', 0)
-    self.mips_writer.addi('fp', 'fp', -use_amount)
+    # self.mips_writer.addi('sp', 'sp', -use_amount)
     count = 0
     for reg in saved_regs:
-      self.mips_writer.lw(reg, 'fp', count)
+      self.mips_writer.lw(reg, 'sp', count)
       count += 4
-    self.mips_writer.addi('fp', 'fp', use_amount)
+    self.mips_writer.addi('sp', 'sp', use_amount)
 
 
   def function_return(self, variable=None):
     if variable is not None:
-      self.mips_writer.addi('v0', self.regs.get_normal_reg(variable,self.line_no))
+      if variable[0]=='t':
+        self.mips_writer.addi('v0', self.regs.get_normal_reg(variable,self.line_no))
+      else:
+        self.mips_writer.addi('v0','zero',variable)
     self.mips_writer.jr('ra')
 
 
@@ -84,14 +86,14 @@ class Translator:
           if line[-1][0]>='0' and line[-1][0]<='9':
             self.mips_writer.li(dst,constant)
           else:
-            self.mips_writer.li(dst, src1)
+            self.mips_writer.move(dst, src1)
         if len(line)==4:
           if line[2]=='CALL':
             temp_str = line[3].split('(')
             function_name = temp_str[0]
             params = temp_str[1][:-1].split(',')
             self.function_call(function_name, params)
-            self.mips_writer.addi(line[0], 'v0')
+            self.mips_writer.addi(dst, 'v0')
           # else :
           #   if line[3]=='+':
           #     if line[-1][0]>='0' and line[-1][0]<='9':
@@ -191,22 +193,28 @@ class Translator:
       # if line[0]=='MALLOC': #MALLOC var1[size]
       #   s = line[1].split('[')
       #   offset = stack_frames[-1].request_space(s[1][:-1])
-      #   self.mips_writer.addi(s[0], 'fp', -offset)
+      #   self.mips_writer.addi(s[0], 'sp', -offset)
       if line[0]=='CALL': #CALL f (var1,var2,var3...) 这里不太确定
-        if line[3]=='read' or line[3]=='print':
-          # TODO 这个不知道能不能用，我暂时先不改了 -awmleer
-          self.mips_writer.addi('sp', 'sp', -4)
-          self.mips_writer.sw('ra', 'sp')
-
-          return '\taddi $sp,$sp,-4\n\tsw $ra,0($sp)\n\tjal %s\n\tlw $ra,0($sp)\n\tmove %s,$v0\n\taddi $sp,$sp,4'%(line[-1],self.regs.get_normal_reg(line[0],self.line_no))
-        else:
-          temp_str = line[3].split('(')
-          function_name = temp_str[0]
-          params = temp_str[1][:-1].split(',')
-          self.function_call(function_name, params)
-      if line[0]=='Function': #FUNCTION f(var1,var2,var3...)
-        function_name=line[1].split('(')[0]
+        temp_str = line[3].split('(')
+        function_name = temp_str[0]
+        params = temp_str[1][:-1].split(',')
+        # if function_name=='read' or function_name=='print':
+        #   # TODO 这个不知道能不能用，我暂时先不改了 -awmleer
+        #   self.mips_writer.addi('sp', 'sp', -4)
+        #   self.mips_writer.sw('ra', 'sp')
+        #
+        #   return '\taddi $sp,$sp,-4\n\tsw $ra,0($sp)\n\tjal %s\n\tlw $ra,0($sp)\n\tmove %s,$v0\n\taddi $sp,$sp,4'%(line[-1],self.regs.get_normal_reg(line[0],self.line_no))
+        # else:
+        self.function_call(function_name, params)
+      if line[0]=='Function': #FUNCTION f(var1,var2,var3...):
+        temp_str = line[1].split('(')
+        function_name=temp_str[0]
+        params = temp_str[1][:-2].split(',')
         self.mips_writer.write_function_label(function_name)
+        count = 0
+        for param in params:
+          self.mips_writer.addi(self.regs.get_normal_reg(param, self.line_no), 'a'+str(count))
+          count += 1
       self.line_no=self.line_no+1
 
     # return '\tbeq %s,%s,%s' % (
