@@ -1,9 +1,11 @@
+
+
 #  编译原理大作业实验报告
 
 * 小组成员：
   * 张清		3150105495
   * 郝广博     3150104785  
-  * 桂晓婉     3150104802  	
+  	 桂晓琬     3150104802  	
 
 ## 总体设计
 
@@ -34,7 +36,111 @@
 
 ### 数据结构
 
-**awmleer**
+语法分析树
+
+```c
+class TreeNode {
+public:
+    string content = "";
+    string name = "";
+    int row = 0;
+    int col = 0;
+    TreeNode *first_child;
+    TreeNode *next_sibling;
+    TreeNode()=default;
+    TreeNode(string name);
+    TreeNode(string name, string content);
+    TreeNode(string name, int num, ...);
+    void write_json(string path);
+private:
+    void traverse(TreeNode *node, ofstream &outfile);
+};
+```
+
++ 数据
+
+  数据方面，我们给每一个树节点定义了几个属性。content表示节点内容，first_child表示节点左儿子，next_sibling表示节点右边兄弟。
+
++ 函数
+
+  TreeNode构造函数负责建立新的节点。以其中一个函数为例：
+
+  通过构造函数传入变长参数，num控制参数个数。其中，num表示该节点子节点的个数，变长参数为所有子节点的地址。
+
+  ~~~c
+  TreeNode::TreeNode(string name,int num,...):TreeNode(name)
+  ~~~
+
+  通过va_list控制变长参数的获取。
+
+  ~~~c
+      va_list valist;
+      //创建节点
+      //连接子树
+      va_start(valist,num);
+  ~~~
+
+  在连接子节点的过程中，通过temp存储每一个子节点。对于第一个子节点，把它设为当前节点的左儿子，对于后面的每个子节点，把它们分别设为前一个子节点的右儿子，即兄弟节点。
+
+  当前节点的行号和列号都取为左儿子的行号和列号。
+
+  ~~~c
+      if(num>0){
+          TreeNode *temp=va_arg(valist,TreeNode*);
+          this->first_child=temp;
+          this->content="";
+          if(num>1){
+              while(--num){
+                  TreeNode *temp2=va_arg(valist,TreeNode*);
+                  temp->next_sibling=temp2;
+                  temp=temp2;
+              }
+          }
+          this->col = first_child->col;
+          this->row = first_child->row;
+      }
+  ~~~
+
++ 生成语法分析树
+
+  语法分析树我们采用json的格式进行生成。json结构清晰，格式固定，能很好的保存树的树结构和内容，便于输出、存储、读取和分析。
+
+  ~~~c
+  void TreeNode::traverse(TreeNode *node, ofstream &outfile)
+  ~~~
+
+  树的遍历采用前序遍历。
+
+  先打印根节点信息，随后分别递归遍历左子树和右子树。
+
+  ```c
+      outfile << "{";
+      outfile << "\"name\":\"" << node->name << "\",";
+      outfile << "\"content\":\"" << node->content << "\",";
+      outfile << "\"row\":" << to_string(node->row) << ",";
+      outfile << "\"col\":" << to_string(node->col) << ",";
+      outfile << "\"children\":[";
+      if(node->first_child){
+          traverse(node->first_child, outfile);
+      }
+      outfile << "]";
+      outfile << "}";
+      if(node->next_sibling){
+          outfile << ",";
+          traverse(node->next_sibling, outfile);
+      }
+  ```
+
+  并且把遍历结果输出到文件里便于读取。
+
+  ```c
+  void TreeNode::write_json(string path){
+      ofstream outfile;
+      outfile.open(path);
+      traverse(this, outfile);
+      outfile.close();
+  }
+  ```
 
 ### 词法分析
 
