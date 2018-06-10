@@ -153,6 +153,39 @@ private:
 
 这段代码会将正则表达式`{L}({L}|{D})*`匹配到的字符串生成一个对应的`identifier`类型的`TreeNode`，并且把匹配到的字符串内容放到`treeNode.content`中。然后，调用`count_col`函数计算列号。最后，返回一个`token`。
 
+```c
+"for"             {yylval.node = new TreeNode("for"); count_col(); return(FOR); }
+```
+
+这一行则是匹配标识符"for"。
+
+对于列号和行号的统计，我们是通过`count_col`和`count_row`实现的：
+
+```c
+void count_col(void){
+  int i;
+  for (i = 0; yytext[i] != '\0'; i++){
+    if(yytext[i] == '\t'){
+      yycol += 8 - (yycol % 8);
+    }else{
+      yycol++;
+    }
+  }
+  ECHO;
+}
+
+void count_row(){
+  yycol = 1;
+  yyrow++;
+}
+```
+
+其中，count_col在每一次匹配到token的时候都会执行，而count_row则只会在匹配到换行符的时候执行：
+
+```c
+"\n"              { count_row(); }
+```
+
 ### 语法分析
 
 * 语言文法
