@@ -847,7 +847,7 @@ if line[1]==':=':
 
 ### 语法树可视化
 
-[syntax-tree](syntax-tree.png)
+[![syntax-tree](syntax-tree.png)]()
 
 ### 执行目标代码
 
