@@ -654,7 +654,7 @@ self.ir_writer.create_label(finish_label)
 
 5. StackFrame
 
-   **awmleer**
+   在我们的设计中，栈帧主要是用来保护寄存器的，`sp`寄存器用来保存当前的栈帧起始位置。当发生函数调用时，会创建一个新的栈帧，然后将普通寄存器和`ra`寄存器保护起来。当函数退出时，会将这些寄存器的值恢复，然后释放栈帧空间。
 
 ### 寄存器分配策略
 
@@ -763,7 +763,7 @@ self.ir_writer.create_label(finish_label)
 
 ### 语法树可视化
 
-**awmleer**
+![syntax-tree](./syntax-tree.png)
 
 ### 执行目标代码
 
