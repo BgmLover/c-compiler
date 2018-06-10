@@ -2,10 +2,9 @@
 
 #  编译原理大作业实验报告
 
-* 小组成员：
-  * 张清		3150105495
-  * 郝广博     3150104785  
-  	 桂晓琬     3150104802  	
+- 张清 3150105495
+- 郝广博 3150104785
+- 桂晓琬 3150104802
 
 ## 总体设计
 
@@ -21,7 +20,7 @@
   3. 后端：Python 3.6
   4. 效果展示：
      * 运行MIPS代码：SPIM 模拟器
-     * 语法分析树展示：**awmleer**
+     * 语法分析树展示：angular, angular-tree-component
 * 运行方式：
   1. 在frontend目录中运行./build.sh生成语法分析器，运行./test.sh解析demo/demo.c，并生成demo/syntax-tree.json
   2. 在middleend目录中运行main.py，生成demo/intermediate.txt
@@ -144,7 +143,15 @@ private:
 
 ### 词法分析
 
-**awmleer**
+词法分析阶段是将代码扫描并且将匹配出文法中的终结符，同时，生成对应的`TreeNode`，将其放入`yylval.node`中，并且计算出当前的行号和列号。
+
+例如：
+
+```c
+{L}({L}|{D})*     {yylval.node = new TreeNode("identifier", yytext); count_col(); return(IDENTIFIER); }
+```
+
+这段代码会将正则表达式`{L}({L}|{D})*`匹配到的字符串生成一个对应的`identifier`类型的`TreeNode`，并且把匹配到的字符串内容放到`treeNode.content`中。然后，调用`count_col`函数计算列号。最后，返回一个`token`。
 
 ### 语法分析
 
@@ -413,7 +420,149 @@ private:
 
 ### 解析语法树
 
-**awmleer**
+由于前端会生成一个树语法结构来表示代码的内容，我们在中端进行语法分析的时候，也只需要沿着树的结构一级一级的进行递归分析。
+
+首先，会从`parse`函数开始分析过程：
+
+```python
+def parse(self):
+  #预定义两个已有函数
+  print_node=FunctionElement("print", "void", True)
+  param_node=TempElement(name='print_value',type="int")
+  print_node.arguments.append(param_node)
+
+  read_node=FunctionElement("read", "int", True)
+
+  self.function_pool["print"]=print_node
+  self.function_pool["read"]=read_node
+
+  if self.syntax_tree['name'] != 'c_program':
+    err = ParserError(self.syntax_tree, 'Root node must be an "c_program"')
+    logger.error(err)
+  else:
+    self.parse_c_program(self.syntax_tree)
+```
+
+然后对其中的名为`c_program`的节点，会调用`parse_c_program`，将其移交给下一层的分析函数处理：
+
+```python
+"""
+c_program
+  : translation_unit
+"""
+def parse_c_program(self, node:dict):
+  children = node['children']
+  self.parse_translation_unit(children[0])
+```
+
+然后，由于一个`c_program`是一个`translation_unit`，我们会再调用`parse_translation_unit`函数。如此往复，直到最底层。
+
+#### expression
+
+表达式可以用于赋值、可以用来作为if/while/for语句的条件判断，但是它本质上，是一个临时变量、一个常量或者一个数组元素，也即上面提到的`TempElement`、`ConstantElement`和`ArrayItemElement`。为了便于表述，我们把这三个类统称为`ValueElement`。
+
+想清楚这一点以后，我们只需要让每一个子类型的expression分析函数返回一个`ValueElement`。例如：
+
+```python
+"""
+additive_expression
+  : multiplicative_expression
+  | additive_expression '+' multiplicative_expression
+  | additive_expression '-' multiplicative_expression
+"""
+def parse_additive_expression(self, node:dict) -> TempElement or ConstantElement or ArrayItemElement:
+  children = node['children']
+  if len(children) == 1:
+    return self.parse_multiplicative_expression(children[0])
+  else:
+    return self.do_binomial_operation(
+      self.parse_additive_expression(children[0]),
+      children[1]['name'],
+      self.parse_multiplicative_expression(children[2])
+    )
+
+def do_binomial_operation(self, src1, operand, src2, type='int'):
+  result = self.create_temp(type)
+  self.ir_writer.binomial_operation(
+    result,
+    src1,
+    operand,
+    src2
+  )
+  return result
+```
+
+在这个分析加法表达式的函数中，我们会通过`do_binomial_operation`函数创建一个临时变量，然后创建一条中间代码，把`parse_additive_expression(children[0])`和`parse_multiplicative_expression(children[2])`分析得到的两个`ValueElement`进行加法运算，并把计算结果赋值给这个新创建的临时变量。最后，把这个新创建的临时变量返回给上一级。
+
+#### constant & identifier
+
+常量和标识符的分析是在`parse_primary_expression`函数中进行的：
+
+```python
+"""
+primary_expression
+  : IDENTIFIER
+  | CONSTANT_INT
+  | '(' expression ')'
+"""
+def parse_primary_expression(self, node:dict) -> TempElement or IdentifierElement or ConstantElement:
+  children = node['children']
+  if children[0]['name'] == 'identifier':
+    return IdentifierElement(children[0]['content'])
+  elif children[0]['name'] == 'constant_int':
+    return ConstantElement('int', children[0]['content'])
+  else:
+    return self.parse_expression(children[1])
+```
+
+在这里，我们会创建一个`IdentifierElement`或者`ConstantElement`。
+
+#### labeled statement
+
+标签语句会对应生成中间代码中的一条标签记录。但是，由于switch…case…语句中的case部分也是属于labeled statement，就需要在这里进行一些特殊处理：
+
+```python
+if children[0]['name'] == 'case':
+  finish_label = self.create_label()
+  condition = self.create_temp('int')
+  self.ir_writer.binomial_operation(
+    condition,
+    case_compare_element,
+    '==',
+    self.parse_logical_or_expression(children[1])
+  )
+  self.ir_writer.if_not_goto(condition, finish_label)
+  self.parse_statement(children[-1], case_compare_element)
+  self.ir_writer.create_label(finish_label)
+elif children[0]['name'] == 'default':
+  pass # do nothing
+```
+
+这里的处理逻辑其实和下面将要提到的if语句非常类似。
+
+由于case语句本身只包含了比较操作的其中一方，因此另一方需要通过参数`condition`由父级分析函数传递进来。
+
+#### selection statement
+
+选择语句包括了：if... / if…else… / switch…case… 三种。
+
+以if…else…的分析为例：
+
+```python
+t = self.parse_expression(children[2])
+else_label = self.create_label()
+finish_label = self.create_label()
+self.ir_writer.if_not_goto(t, else_label)
+self.parse_statement(children[4])
+self.ir_writer.goto(finish_label)
+self.ir_writer.create_label(else_label)
+self.parse_statement(children[6])
+self.ir_writer.create_label(finish_label)
+```
+
+这里用到了两个label：`else_label`和`finish_label`。如果if表达式的值不成立，就跳转到`else_label`，执行else语句块的内容，否则，就继续执行，在执行完if语句块的内容，执行完成后，跳转到`finish_label`。
+
+**TODO for 张清**
 
 ## 后端部分
 
